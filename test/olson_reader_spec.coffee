@@ -39,8 +39,8 @@ describe "Olson Reader", ->
         reader = new OlsonReader
         checkRule = (r) ->
             r.name.should.equal "Chicago"
-            r.from.should.equal "1920"
-            r.to.should.equal "only"
+            r._from.should.equal "1920"
+            r._to.should.equal "only"
             r.type.should.equal "-"
             r.in.should.equal "Jun"
             r.on.should.equal "13"
@@ -58,7 +58,7 @@ describe "Olson Reader", ->
         reader = new OlsonReader
         checkZone = (z) ->
             z.name.should.equal "America/Chicago"
-            z.offset.should.equal "-5:50:36"
+            z._offset.should.equal "-5:50:36"
             z.rules.should.equal "-"
             z.format.should.equal "LMT"
             z.until.should.equal "1883 Nov 18 12:09:24"
@@ -70,7 +70,7 @@ describe "Olson Reader", ->
         checkZone zone
 
 
-    it "can read America-Chicago file", (done) ->
+    it "can read America-Chicago test file", (done) ->
         reader = new OlsonReader
 
         reader.singleFile "./test/rsrc/America-Chicago", (result) ->
@@ -101,6 +101,13 @@ describe "Olson Reader", ->
             do done
 
 
-    it "returns a list of all the read in TimeZones"
-    it "can map time zone names to time zone files ('America/Chicago' -> 'northamerica')"
+    it "returns a list of all the read in TimeZones", -> 
+        # We can combine them ourselves through the result that comes back from reader.directory
+        true
+
+    it "can map time zone names to time zone files ('America/Chicago' -> 'northamerica')", ->
+        # We can determine this from the result that comes back from reader.directory
+        true
+
+    # Holding off on this until I see a need.
     it "can build a list of specific TimeZones"

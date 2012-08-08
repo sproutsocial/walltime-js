@@ -10,14 +10,15 @@ class OlsonReader
 
     _trimComments: (str) ->
         return str unless str
+        
         commentStart = str.indexOf "#"
         return str if commentStart < 0
 
         return (str.slice 0, commentStart).trimRight()
 
-    # These are public for testing...
+    # These are public for testing... Probably should make them their own classes or something
     processRuleLine: (line) ->
-        # TODO: Parse Rule, return it.
+        # Parse Rule, return it.
         parts = line.split "\t"
         new Rule parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], parts[8], @_trimComments(parts[9])
 
@@ -56,7 +57,7 @@ class OlsonReader
         inZone = null
         processLine = (curr, last) =>
             # Skip comments, empty lines
-            if @_isEmptyLine(curr) || curr[0] == "#"
+            if @_isEmptyLine(curr) or curr[0] == "#"
                 return true
 
             # Rules always have RULE in front.
@@ -67,7 +68,7 @@ class OlsonReader
                 # Process the rule
                 rule = @processRuleLine curr
                 # Add to the rules by name.
-                rules[rule.name] = rules[rule.name] || []
+                rules[rule.name] = rules[rule.name] or []
                 rules[rule.name].push rule
             else 
                 zone = @processZoneLine curr, inZone
