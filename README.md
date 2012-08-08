@@ -3,6 +3,8 @@ walltime-js
 
 A javascript library for easily translating a UTC time to a "Wall Time" for a particular time zone.
 
+[![Build Status](https://secure.travis-ci.org/sproutsocial/walltime-js.png)](http://travis-ci.org/sproutsocial/walltime-js)
+
 ## Problems this solves
 
 Dates in javascript do not account for daylight savings time for regions that use them.
