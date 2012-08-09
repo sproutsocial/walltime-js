@@ -126,7 +126,6 @@ class Rule
 
             return handler.parseDate onStr, year, month
 
-        console.log "#{onStr}, #{year}, #{month}"
         throw new Error "Unable to parse 'on' field for #{@name}|#{@_from}|#{@_to}|#{onStr}"
 
     _parseTime: (atStr) ->
