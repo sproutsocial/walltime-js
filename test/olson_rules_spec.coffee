@@ -10,6 +10,7 @@ describe "Olson Rules", ->
     ruleLine = "rule\tChicago\t1920\tonly\t-\tJun\t13\t2:00\t1:00\tD"
     atUTCRuleLine = "rule\tChicago\t1920\tonly\t-\tJun\t13\t23:00u\t1:00\tD"
     atSTDRuleLine = "rule\tChicago\t1920\tonly\t-\tJun\t13\t23:00s\t1:00\tD"
+
     rule = reader.processRuleLine ruleLine
 
     describe "'on' Field Handlers", ->

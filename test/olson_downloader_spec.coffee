@@ -2,6 +2,9 @@ should = require "should"
 fs = require "fs"
 OlsonDownloader = require "../lib/olson/downloader"
 
+# These are left in here for posterity, but shouldn't be in the normal unit test runs because they take a while
+
+###
 describe "Olson Downloader", ->
     testFilesPath = "./test/olsonfiles"
     resetFiles = ->
@@ -38,3 +41,4 @@ describe "Olson Downloader", ->
             files.should.include "northamerica"
             files.should.include "europe"
             do next
+###

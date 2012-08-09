@@ -77,19 +77,27 @@ class CompareOnFieldHandler
 # A Rule represents an Olson file line describing both a state of time for a given TimeZone
 # and a transition to daylight savings offset.
 class Rule
-    constructor: (@name, @_from, @_to, @type, @in, @on, @at, @save, @letter) ->
+    constructor: (@name, @_from, @_to, @type, @in, @on, @at, @_save, @letter) ->
         fromYear = parseInt @_from, 10
         
-        toYear = if @_to == "only" then fromYear else parseInt @_to, 10
+        @isMax = false
+        switch @_to
+            when "max"
+                toYear = (helpers.Time.MaxDate()).getYear()
+                @isMax = true
+            when "only"
+                toYear = fromYear
+            else
+                toYear = parseInt @_to, 10
+
         toMonth = Months.MonthIndex @in
         onParsed = parseInt @on, 10
         toDay = if !isNaN(onParsed) then onParsed else @_parseOnDay @on, toYear, toMonth
         
-        [saveHour, saveMinute] = @_parseTime @save
+        [saveHour, saveMinute] = @_parseTime @_save
         @save = 
             hours: saveHour
             minutes: saveMinute
-        
         
         [toHour, toMinute, atQualifier] = @_parseTime @at
         # If there was an at qualifier like s, u, g, or z we should keep that for later
@@ -98,12 +106,13 @@ class Rule
 
         # The end time here is not inclusive, it should be 1 millisecond less
         # Adjust the end time appropriately
-        endTs = new Date(toYear, toMonth, toDay, toHour, toMinute, 0, 0).getTime() - 1
-        endTime = new Date(endTs)
-
+        endTime = new Date(toYear, toMonth, toDay, toHour, toMinute, 0, 0)
+        endTime.setMilliseconds(endTime.getMilliseconds() - 1)
+        
         @range =
             begin: new Date(fromYear, 0, 1)
             end: endTime
+
 
     # Parse the string that represents the day of the month in the "on" field of a rule.
     # In addition to an actual number this can be strings like "lastSun", "Sun>=8" representing
@@ -117,6 +126,7 @@ class Rule
 
             return handler.parseDate onStr, year, month
 
+        console.log "#{onStr}, #{year}, #{month}"
         throw new Error "Unable to parse 'on' field for #{@name}|#{@_from}|#{@_to}|#{onStr}"
 
     _parseTime: (atStr) ->

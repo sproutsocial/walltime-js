@@ -59,6 +59,9 @@ Time =
 
         new Date(dt.getTime() + offset_ms)
 
+    MaxDate: ->
+        new Date(100000000*86400000)
+
 module.exports = 
     Days: Days
     Months: Months

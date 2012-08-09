@@ -77,7 +77,7 @@ class OlsonReader
                     zones[zone.name] = zones[zone.name] or []
                     zones[zone.name].push zone
 
-        fileDone = lineReader.eachLine filePath, processLine, "\n", "ascii"
+        fileDone = lineReader.eachLine filePath, processLine, "\n", "utf8"
 
         fileDone.then ->
             next
