@@ -1,11 +1,13 @@
 should = require "should"
 fs = require "fs"
+helpers = require "../lib/olson/helpers"
 OlsonDownloader = require "../lib/olson/downloader"
 OlsonReader = require "../lib/olson/reader"
 
 describe "Olson Reader", ->
     testFilesPath = "./test/olsonfiles"
     ruleLine = "rule\tChicago\t1920\tonly\t-\tJun\t13\t2:00\t1:00\tD"
+    maxRuleLine = "Rule\tUS\t2007\tmax\t-\tMar\tSun>=8\t2:00\t1:00\tD"
     zoneLine = "Zone America/Chicago\t-5:50:36 -\tLMT\t1883 Nov 18 12:09:24"
     zoneChildLine = "\t\t\t-6:00\tUS\tC%sT\t1920"
 
@@ -18,20 +20,6 @@ describe "Olson Reader", ->
 
         fs.rmdirSync testFilesPath
 
-    before (next) ->
-        @timeout 5000
-
-        do resetFiles
-        # Create our test files directory
-        fs.mkdirSync testFilesPath
-        (new OlsonDownloader).begin testFilesPath, next
-
-
-    after (next) ->
-        # Reset all our files
-        do resetFiles
-        do next
-
     it "has a reader", ->
         should.exist OlsonReader
     
@@ -39,13 +27,14 @@ describe "Olson Reader", ->
         reader = new OlsonReader
         checkRule = (r) ->
             r.name.should.equal "Chicago"
-            r.from.should.equal "1920"
-            r.to.should.equal "only"
+            r._from.should.equal "1920"
+            r._to.should.equal "only"
             r.type.should.equal "-"
             r.in.should.equal "Jun"
             r.on.should.equal "13"
             r.at.should.equal "2:00"
-            r.save.should.equal "1:00"
+            r.save.hours.should.equal 1
+            r.save.minutes.should.equal 0
             r.letter.should.equal "D"
         
         rule = reader.processRuleLine ruleLine
@@ -54,11 +43,19 @@ describe "Olson Reader", ->
         rule = reader.processRuleLine(ruleLine + " # Some Comment")
         checkRule rule
 
+    it "can parse Rule lines with 'max' To field", ->
+        reader = new OlsonReader
+        rule = reader.processRuleLine maxRuleLine
+        maxDt = helpers.Time.MaxDate()
+
+        # That's far enough for me
+        rule.range.end.getYear().should.above 200000
+
     it "can parse Zone lines with name and comments at the end", ->
         reader = new OlsonReader
         checkZone = (z) ->
             z.name.should.equal "America/Chicago"
-            z.offset.should.equal "-5:50:36"
+            z._offset.should.equal "-5:50:36"
             z.rules.should.equal "-"
             z.format.should.equal "LMT"
             z.until.should.equal "1883 Nov 18 12:09:24"
@@ -69,8 +66,7 @@ describe "Olson Reader", ->
         zone = reader.processZoneLine(zoneLine + " # Some Comment", null)
         checkZone zone
 
-
-    it "can read America-Chicago file", (done) ->
+    it "can read America-Chicago test file", (done) ->
         reader = new OlsonReader
 
         reader.singleFile "./test/rsrc/America-Chicago", (result) ->
@@ -99,8 +95,14 @@ describe "Olson Reader", ->
             should.exist result["America-New_York"].zones["America/New_York"], "Should have New York zone in New York file"
 
             do done
+    
+    it "returns a list of all the read in TimeZones", -> 
+        # We can combine them ourselves through the result that comes back from reader.directory
+        true
 
+    it "can map time zone names to time zone files ('America/Chicago' -> 'northamerica')", ->
+        # We can determine this from the result that comes back from reader.directory
+        true
 
-    it "returns a list of all the read in TimeZones"
-    it "can map time zone names to time zone files ('America/Chicago' -> 'northamerica')"
+    # Holding off on this until I see a need.
     it "can build a list of specific TimeZones"
