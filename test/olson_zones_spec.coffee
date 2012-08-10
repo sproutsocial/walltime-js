@@ -7,6 +7,7 @@ OlsonZoneSet = OlsonCommon.ZoneSet
 
 describe "Olson Zones", ->
     fullZoneLine = "Zone America/Chicago\t-5:50:36 -\tLMT\t1883 Nov 18 12:09:24"
+    static1HourZoneLine = "\t\t\t-6:00\t1:00\tC%sT\t1920"
     secondZoneLine = "\t\t\t-6:00\tUS\tC%sT\t1920"
     thirdZoneLine = "\t\t\t-6:00\tChicago\tC%sT\t1940"
     endZoneLine = "         -6:00   US  C%sT"
@@ -14,6 +15,19 @@ describe "Olson Zones", ->
 
     processZone = (line, parentZone) ->
         reader.processZoneLine line, parentZone
+
+    makeSet = (lines...) ->
+        currZone = null
+        zones = []
+        for line in lines
+            newZone = processZone line, currZone
+            zones.push newZone
+            currZone = newZone
+
+        new OlsonZoneSet zones
+
+    defaultSet = ->
+        makeSet fullZoneLine, secondZoneLine, thirdZoneLine, endZoneLine
 
     it "can process from full Zone lines with beginning having minimum date", ->
         zone = processZone fullZoneLine
@@ -49,20 +63,39 @@ describe "Olson Zones", ->
         # Max Date
         endZone.range.end.getUTCFullYear().should.be.above 20000
 
+    it "can convert a time to standard time when no rule is specified", ->
+        zoneSet = defaultSet()
+
+        firstZone = zoneSet.zones[0]
+
+        firstZone._rule.should.equal "-"
+
+        origTime = helpers.Time.MakeDateFromParts 1880, 0, 1
+
+        standardTime = helpers.Time.UTCToStandardTime origTime, firstZone.offset
+
+        resultTime = firstZone.UTCToWallTime origTime
+
+        resultTime.should.equal standardTime
+
+    it "can convert a time to offset time when static offset rule is specified", ->
+        zoneSet = makeSet fullZoneLine, static1HourZoneLine, endZoneLine
+
+        staticZone = zoneSet.zones[1]
+
+        staticZone._rule.should.equal "1:00"
+
+        origTime = helpers.Time.MakeDateFromParts 1900, 0, 1
+
+        standardTime = helpers.Time.UTCToStandardTime origTime, staticZone.offset
+
+        offsetTime = helpers.Time.ApplySave standardTime, { hours: 1, mins: 0 }
+
+        resultTime = staticZone.UTCToWallTime origTime
+
+        resultTime.should.equal offsetTime
+
     describe "Zone Sets", ->
-
-        makeSet = (lines...) ->
-            currZone = null
-            zones = []
-            for line in lines
-                newZone = processZone line, currZone
-                zones.push newZone
-                currZone = newZone
-
-            new OlsonZoneSet zones
-
-        defaultSet = ->
-            makeSet fullZoneLine, secondZoneLine, thirdZoneLine, endZoneLine
 
         it "can find an applicable zone by UTC date before the beginning of the zones records minimum date", ->
             zoneSet = defaultSet()

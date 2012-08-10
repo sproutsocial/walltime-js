@@ -58,7 +58,7 @@ describe "Olson Reader", ->
         checkZone = (z) ->
             z.name.should.equal "America/Chicago", "name"
             z._offset.should.equal "-5:50:36", "offset"
-            z._rules.should.equal "-", "rules"
+            z._rule.should.equal "-", "rules"
             z.format.should.equal "LMT", "format"
             z._until.should.equal "1883 Nov 18 12:09:24", "til"
 

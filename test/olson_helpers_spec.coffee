@@ -75,4 +75,17 @@ describe "Olson Helpers", ->
 
             # Should be 1/10/1920 17:00
             utcDate.should.equal helpers.Time.MakeDateFromParts(1920, 0, 10, 7)
+
+        it "can apply a SAVE value", ->
+            # Start with 1/10/1920 12:00
+            origDate = helpers.Time.MakeDateFromParts(1920, 0, 10, 12)
+            expectDate = helpers.Time.MakeDateFromParts(1920, 0, 10, 13)
+
+            save =
+                hours: 1
+                mins: 0
+
+            result = helpers.Time.ApplySave origDate, save
+
+            result.should.equal expectDate
             

@@ -64,6 +64,10 @@ Time =
 
         @MakeDateFromTimeStamp(dt.getTime() + offset_ms)
 
+    # Applies a SAVE value by adjusting the time forward by the time passed in.
+    ApplySave: (dt, save) ->
+        @ApplyOffset dt, { negative: true, hours: save.hours, mins: save.mins, secs: 0}
+
     UTCToWallTime: (dt, offset, save) ->
         # Apply the gmt offset in reverse to the endTime because all our dates are represented with UTC underneath
         # This is the "standard" time; offset but without daylight savings rules applied

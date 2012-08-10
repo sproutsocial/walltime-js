@@ -3,7 +3,7 @@ helpers = require "./helpers"
 # A Zone represents an Olson file line describing a steady state between two dates (or infinity for the last line of most zones)
 # and either a static time offset or set of rules to apply to determine the offset from "Local Time"
 class Zone
-    constructor: (@name, @_offset, @_rules, @format, @_until, currZone) ->
+    constructor: (@name, @_offset, @_rule, @format, @_until, currZone) ->
 
         [isNegative, offsetHours, offsetMins, offsetSecs] = helpers.Time.ParseGMTOffset @_offset
         @offset = 
@@ -33,6 +33,34 @@ class Zone
         day = if day then parseInt day, 10 else 0
 
         helpers.Time.StandardTimeToUTC @offset, year, month, day, h, mi, s
+
+    UTCToWallTime: (dt, getRules) ->
+        # First convert to standard time with this zones gmt offset
+        standard = helpers.Time.UTCToStandardTime dt, @offset
+
+        # Standard Time
+        result = standard
+        if @_rule == "-" or @_rule == ""
+            # Already converted to Standard
+            return result
+
+        # Static Offset
+        if @_rule.indexOf(":") >= 0
+            # Add on the static savings
+            [hours, mins] = helpers.Time.ParseTime @_rule
+            result = helpers.Time.ApplySave standard, { hours: hours, mins: mins }
+            return result
+
+        # Only thing left is applying a rule.
+
+        # Get the rule
+        rules = getRules @_rule
+
+        @_wallTimeFromRules dt, rules
+
+    _wallTimeFromRules: (dt, rules) ->
+        # TODO: Apply rules
+        dt
 
 class ZoneSet
     constructor: (@zones = []) ->
