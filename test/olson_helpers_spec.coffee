@@ -1,6 +1,26 @@
 should = require "should"
 helpers = require "../lib/olson/helpers"
 
+describe "Javascript Dates", ->
+    # These are tests to confirm my assumptions about javascript dates
+    commonDateCompare = (y, m, d, h, mi, s, ms) ->
+        dt = helpers.Time.MakeDateFromParts y, m, d, h, mi, s, ms
+
+        dt.getUTCFullYear().should.equal y, "year"
+        dt.getUTCMonth().should.equal m, "month"
+        dt.getUTCDate().should.equal d, "day"
+        dt.getUTCHours().should.equal h, "hour"
+        dt.getUTCMinutes().should.equal mi, "minute"
+        dt.getUTCSeconds().should.equal s, "second"
+        dt.getUTCMilliseconds().should.equal ms, "millisecond"
+
+    it "are correct for 2012 before Daylight Savings using default constructor", ->
+        commonDateCompare 2012, 3-1, 11, 1, 59, 59, 999
+
+    it "are correct for 2012 after Daylight Savings using default constructor", ->
+        # Note the change over to 3:00 for this time zone
+        commonDateCompare 2012, 3-1, 11, 2, 0, 0, 0
+
 describe "Olson Helpers", ->
     
     describe "Time Helpers", ->
@@ -16,7 +36,6 @@ describe "Olson Helpers", ->
             hours.should.equal 23
             mins.should.equal 0
             qual.should.equal "u"
-
 
         it "can parse GMT offsets", ->
             [negative, hour, minute, seconds] = helpers.Time.ParseGMTOffset "-5:50:36"
@@ -35,7 +54,7 @@ describe "Olson Helpers", ->
 
         it "can apply an offset", ->
             # Start with 1/10/1920 12:00
-            origDate = new Date(1920, 0, 10, 12)
+            origDate = helpers.Time.MakeDateFromParts(1920, 0, 10, 12)
             offset = 
                 negative: true
                 hours: 5
@@ -46,7 +65,7 @@ describe "Olson Helpers", ->
             utcDate = helpers.Time.ApplyOffset origDate, offset
 
             # Should be 1/10/1920 17:50:36
-            utcDate.should.equal new Date(1920, 0, 10, 17, 50, 36)
+            utcDate.should.equal helpers.Time.MakeDateFromParts(1920, 0, 10, 17, 50, 36)
 
             offset.negative = false
             offset.mins = 0
@@ -56,6 +75,5 @@ describe "Olson Helpers", ->
             utcDate = helpers.Time.ApplyOffset origDate, offset
 
             # Should be 1/10/1920 17:00
-            utcDate.should.equal new Date(1920, 0, 10, 7)
-                
+            utcDate.should.equal helpers.Time.MakeDateFromParts(1920, 0, 10, 7)
             
