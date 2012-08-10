@@ -20,19 +20,16 @@ class LastOnFieldHandler
         # To get the last day of the month we set the date to the first day of next month, and move back one day.
         
         # Set the date to the first day of the next month
-        console.log "#{str}, #{year}, #{month}"
         if month < 11
             lastDay = helpers.Time.MakeDateFromParts year, (month + 1)
         else 
             # Account for going over to the next year.
             lastDay = helpers.Time.MakeDateFromParts year + 1, 0
 
-        console.log lastDay.toUTCString()
         # Move back one day to the last day of the current month.
         lastDay = Days.AddToDate lastDay, -1
 
         # Iterate backward until our dayIndex matches the last days index
-        console.log "Finding CompareField: #{dayIndex} = #{lastDay.getUTCDay()}"
         while lastDay.getUTCDay() != dayIndex
             lastDay = Days.AddToDate lastDay, -1
         
@@ -73,13 +70,10 @@ class CompareOnFieldHandler
         # Begin at the beginning of the month, at worst we are iterating 30 or so extra times.
         testDate = helpers.Time.MakeDateFromParts year, month
 
-        # We need to adjust the date here for the gmt offset
-        testDate = helpers.Time.UTCToQualifiedTime testDate, qualifier, gmtOffset, daylightOffset
+        # We just need to find the day of the month, so no need to adjust for gmt offset.
 
         # Go forward one day at a time until we get a matching day of the week (Sun) and the compare of the date of the month passes (8 >= 8)
-        console.log "Finding CompareField: #{dayIndex} = #{testDate.getUTCDay()} | #{testDate.getUTCDate()} = #{dateIndex} "
-        while dayIndex != testDate.getUTCDay() and !compareFunc(testDate.getUTCDate(), dateIndex)
-            # console.log "Finding CompareField: #{dayIndex} = #{testDate.getUTCDay()} | #{testDate.getUTCDate()} = #{dateIndex} "
+        while !(dayIndex == testDate.getUTCDay() and compareFunc(testDate.getUTCDate(), dateIndex))
             testDate = Days.AddToDate testDate, 1 
          
 
@@ -124,8 +118,8 @@ class Rule
         endTime = helpers.Time.MakeDateFromParts toYear, toMonth, toDay, toHour, toMinute, 0, 0
         endTime.setUTCMilliseconds(endTime.getUTCMilliseconds() - 1)
 
-        # this will convert our time based on the qualifier.
-        endTime = helpers.Time.UTCToQualifiedTime endTime, @atQualifier, @gmtOffset, @save
+        # this will convert our time to standard time
+        endTime = helpers.Time.UTCToStandardTime endTime, @gmtOffset, @save
         
         fromYear = parseInt @_from, 10
         begin = helpers.Time.MakeDateFromParts fromYear, 0, 1
@@ -150,7 +144,6 @@ class Rule
 
             return handler.parseDate onStr, year, month, @atQualifier, @gmtOffset, @save
 
-        console.log "#{onStr}, #{year}, #{month}"
         throw new Error "Unable to parse 'on' field for #{@name}|#{@_from}|#{@_to}|#{onStr}"
 
     _parseTime: (atStr) ->
@@ -174,7 +167,7 @@ class RuleSet
         # TODO: Maybe move these into RuleQualifier Classes
 
         # Convert the DT to the rules qualifier time and compare to end
-        qualTime = helpers.Time.UTCToQualifiedTime dt, rule.atQualifier, rule.gmtOffset, rule.save
+        qualTime = helpers.Time.UTCToQualifiedTime dt, rule.atQualifier, rule.gmtOffset, getCurrentSaveState(rule, dt)
 
         # Easy checks first?
         # If we are before the beginning of this date, return false

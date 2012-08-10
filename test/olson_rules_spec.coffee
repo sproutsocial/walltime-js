@@ -60,59 +60,19 @@ describe "Olson Rules", ->
     it "can calculate it's range", ->
         
         begin = helpers.Time.MakeDateFromParts(1920, 0, 1, 0, 0)
-        # End times are compared in qualified time
-        end = helpers.Time.UTCToQualifiedTime helpers.Time.MakeDateFromParts(1920, 5, 13, 1, 59, 59, 999), rule.atQualifier, rule.gmtOffset, rule.save
+        # End times are compared in standard time
+        end = helpers.Time.UTCToStandardTime helpers.Time.MakeDateFromParts(1920, 5, 13, 1, 59, 59, 999), rule.gmtOffset
+        
         rule.range.begin.should.equal begin, "begin"
         rule.range.end.should.equal end, "end"
 
     ruleTime = (r, dt) ->
         helpers.Time.UTCToQualifiedTime dt, r.atQualifier, r.gmtOffset, r.save
 
-    commonRangeTest = (r, date, expected, msg) ->
-        timeZone = 
-            offset:
-                negative: true
-                hours: 5
-                mins: 0
-                secs: 0
-        set = new OlsonRuleSet([rule], timeZone)
-        prevRuleState = 
-            negative: false
-            hours: 1
-            mins: 0
-            secs: 0
+    # TODO
+    it "can tell when a date falls within it's range for wall time", 
 
-        actual = set.checkRuleApplicability r, date, -> prevRuleState
-        actual.should.equal expected, "#{msg}: #{date.toUTCString()} - #{JSON.stringify(r)}"
-
-    it "can tell when a date falls within it's range for wall time", ->
-
-        # Before
-        commonRangeTest rule, helpers.Time.RuleTimeToUTC(rule, 1919, 11, 31, 23, 59, 59, 999), false, "before"
-        # Beginning
-        commonRangeTest rule, helpers.Time.RuleTimeToUTC(rule, 1920, 0, 1, 0, 0), true, "beginning"
-        # Middle
-        commonRangeTest rule, helpers.Time.RuleTimeToUTC(rule, 1920, 2, 1, 0, 0), true, "middle"
-        # End
-        commonRangeTest rule, helpers.Time.RuleTimeToUTC(rule, 1920, 5, 13, 1, 59, 59, 999), true, "end"
-        # After
-        commonRangeTest rule, helpers.Time.RuleTimeToUTC(rule, 1920, 5, 13, 2, 0, 0), false, "after"
-
-    it "can tell when a date falls within it's range for utc time", ->
-        # Set up a utc Rule for 
-        utcRule = reader.processRuleLine atUTCRuleLine
-        
-        # Before
-        commonRangeTest utcRule, helpers.Time.RuleTimeToUTC(utcRule, 1919, 11, 31, 23, 59, 59, 999), false, "before"
-        # Beginning
-        commonRangeTest utcRule, helpers.Time.RuleTimeToUTC(utcRule, 1920, 0, 1, 0, 0), true, "beginning"
-        # Middle
-        commonRangeTest utcRule, helpers.Time.RuleTimeToUTC(utcRule, 1920, 2, 1, 0, 0), true, "middle"
-        # End (With daylight savings already being applied)
-        commonRangeTest utcRule, helpers.Time.RuleTimeToUTC(utcRule, 1920, 5, 13, 16, 59, 59, 999), true, "end"
-        # After (With daylight savings already being applied)
-        commonRangeTest utcRule, helpers.Time.RuleTimeToUTC(utcRule, 1920, 5, 13, 17, 0, 0), false, "after"
-
+    it "can tell when a date falls within it's range for utc time", 
 
 
 
