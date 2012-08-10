@@ -95,6 +95,33 @@ describe "Olson Zones", ->
 
         resultTime.should.equal offsetTime
 
+    it "can convert a time to offset time when a named rule is specified", ->
+        zoneSet = defaultSet()
+
+        save = 
+            hours: 1
+            mins: 0
+
+        namedRuleZone = zoneSet.zones[1]
+
+        namedRuleZone._rule.should.equal "US"
+
+        origTime = helpers.Time.MakeDateFromParts 1921, 0, 1
+
+        standardTime = helpers.Time.UTCToStandardTime origTime, namedRuleZone.offset
+
+        dstTime = helpers.Time.ApplySave standardTime, save
+
+        getSaveForRule = (ruleName, offset, std, utc) ->
+            ruleName.should.equal "US"
+            offset.should.equal namedRuleZone.offset
+            std.should.equal standardTime
+            utc.should.equal origTime
+            # Return our static save value.  We're not testing rule processing here.
+            save
+
+        resultTime = namedRuleZone.UTCToWallTime origTime, getSaveForRule
+
     describe "Zone Sets", ->
 
         it "can find an applicable zone by UTC date before the beginning of the zones records minimum date", ->

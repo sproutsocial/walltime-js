@@ -34,7 +34,7 @@ class Zone
 
         helpers.Time.StandardTimeToUTC @offset, year, month, day, h, mi, s
 
-    UTCToWallTime: (dt, getRules) ->
+    UTCToWallTime: (dt, getRuleSave) ->
         # First convert to standard time with this zones gmt offset
         standard = helpers.Time.UTCToStandardTime dt, @offset
 
@@ -52,11 +52,10 @@ class Zone
             return result
 
         # Only thing left is applying a rule.
+        result = helpers.Time.ApplySave standard, getRuleSave(@_rule, @offset, standard, dt)
 
-        # Get the rule
-        rules = getRules @_rule
-
-        @_wallTimeFromRules dt, rules
+        result
+        
 
     _wallTimeFromRules: (dt, rules) ->
         # TODO: Apply rules
