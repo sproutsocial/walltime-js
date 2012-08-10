@@ -1,8 +1,10 @@
 should = require "should"
 fs = require "fs"
+
 helpers = require "../lib/olson/helpers"
 OlsonDownloader = require "../lib/olson/downloader"
 OlsonReader = require "../lib/olson/reader"
+Tokenizer = require "../lib/olson/reader/tokenizer"
 
 describe "Olson Reader", ->
     testFilesPath = "./test/olsonfiles"
@@ -34,7 +36,7 @@ describe "Olson Reader", ->
             r.on.should.equal "13"
             r.at.should.equal "2:00"
             r.save.hours.should.equal 1
-            r.save.minutes.should.equal 0
+            r.save.mins.should.equal 0
             r.letter.should.equal "D"
         
         rule = reader.processRuleLine ruleLine
@@ -49,18 +51,18 @@ describe "Olson Reader", ->
         maxDt = helpers.Time.MaxDate()
 
         # That's far enough for me
-        rule.range.end.getYear().should.above 200000
+        rule.range.end.getUTCFullYear().should.above 20000
 
     it "can parse Zone lines with name and comments at the end", ->
         reader = new OlsonReader
         checkZone = (z) ->
-            z.name.should.equal "America/Chicago"
-            z._offset.should.equal "-5:50:36"
-            z.rules.should.equal "-"
-            z.format.should.equal "LMT"
-            z.until.should.equal "1883 Nov 18 12:09:24"
+            z.name.should.equal "America/Chicago", "name"
+            z._offset.should.equal "-5:50:36", "offset"
+            z._rules.should.equal "-", "rules"
+            z.format.should.equal "LMT", "format"
+            z._until.should.equal "1883 Nov 18 12:09:24", "til"
 
-        zone = reader.processZoneLine zoneLine, null
+        zone = reader.processZoneLine zoneLine
         checkZone zone
 
         zone = reader.processZoneLine(zoneLine + " # Some Comment", null)
@@ -77,12 +79,11 @@ describe "Olson Reader", ->
 
             should.exist chiZone, "should have America/Chicago zone in zones"
 
-            chiZone.length.should.be.above 1
+            chiZone.zones.length.should.be.above 1
 
             do done
 
     it "can read Olson files from a specific directory", (done) ->
-        @timeout 20000
         reader = new OlsonReader
 
         reader.directory "./test/rsrc", (result) ->
@@ -95,14 +96,58 @@ describe "Olson Reader", ->
             should.exist result["America-New_York"].zones["America/New_York"], "Should have New York zone in New York file"
 
             do done
+
+    it "can read the northamerica Olson file", (done) ->
+        reader = new OlsonReader
+
+        reader.singleFile "./test/rsrc/full/northamerica", (result) ->
+            should.exist result?.zones, "should have zones in result"
+            should.exist result?.rules, "should have rules in result"
+
+            chiZone = result.zones["America/Chicago"]
+
+            should.exist chiZone, "should have America/Chicago zone in zones"
+
+            # TODO: test other zone names
+
+            chiZone.zones.length.should.be.above 1
+
+            do done
     
     it "returns a list of all the read in TimeZones", -> 
-        # We can combine them ourselves through the result that comes back from reader.directory
+        # We can combine them ourselves through the result that comes back from reader.directory, see time zone mapping test
         true
 
-    it "can map time zone names to time zone files ('America/Chicago' -> 'northamerica')", ->
-        # We can determine this from the result that comes back from reader.directory
-        true
+    it "can map time zone names to time zone files ('America/Chicago' -> 'northamerica')", (done) ->
+        reader = new OlsonReader
+
+        reader.directory "./test/rsrc", (result) ->
+            should.exist result, "Should have returned a result"
+            
+            map = {}
+            for own fileName, parsed of result
+                for own zoneName, zoneSet of parsed.zones
+                    map[zoneName] = fileName
+
+            map["America/Chicago"].should.equal "America-Chicago"
+
+            do done
 
     # Holding off on this until I see a need.
-    it "can build a list of specific TimeZones"
+    # it "can build a list of specific TimeZones"
+
+    describe "Line Tokenizer", ->
+        t = new Tokenizer null, null
+        it "can tokenize lines with no tabs", ->
+            result = t.tokenize "Zone America/Chicago   -5:50:36 -  LMT 1883 Nov 18 12:09:24"
+
+            should.exist result, "no result from tokenize"
+            result.should.eql [ "Zone", "America/Chicago", "-5:50:36", "-", "LMT", "1883", "Nov", "18", "12:09:24" ]
+
+        it "can tokenize with tabs", ->
+            result = t.tokenize zoneLine
+
+            should.exist result, "no result from tokenize"
+            result.should.eql [ "Zone", "America/Chicago", "-5:50:36", "-", "LMT", "1883", "Nov", "18", "12:09:24" ]
+
+
