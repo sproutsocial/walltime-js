@@ -57,7 +57,7 @@ describe "Olson Rules", ->
             commonHandlerTest "13", 1920, 9, compareHandler, false
             commonHandlerTest "lastSun", 1920, 9, compareHandler, false
 
-    it "can calculate it's range", ->
+    it "can calculate their range in standard time", ->
         
         begin = helpers.Time.MakeDateFromParts(1920, 0, 1, 0, 0)
         # End times are compared in standard time
@@ -73,6 +73,8 @@ describe "Olson Rules", ->
     it "can tell when a date falls within it's range for wall time", 
 
     it "can tell when a date falls within it's range for utc time", 
+
+    it "can tell when a date falls within it's range for standard time", 
 
 
 

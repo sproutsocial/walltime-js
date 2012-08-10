@@ -32,7 +32,7 @@ class OlsonReader
     processZoneLine: (line, currZone) ->
         # Parse zone, return it.
         parts = @tokenizer.tokenize line
-        return null if parts.length < 4
+        return null if parts.length < 3
         
         begin = 0
         if parts[0][0].toUpperCase() == "Z"

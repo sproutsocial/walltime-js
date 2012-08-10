@@ -25,14 +25,14 @@ class Zone
         [neg, h, mi, s] = if time then helpers.Time.ParseGMTOffset time else [false, 0, 0, 0]
 
         # return max date if we have no values
-        return helpers.Time.MaxDate() if !year
+        return helpers.Time.MaxDate() if !year || year == ""
 
         # Otherwise, parse what we have
         year = parseInt year, 10
         month = if monthName then helpers.Months.MonthIndex monthName else 0
         day = if day then parseInt day, 10 else 0
 
-        helpers.Time.MakeDateFromParts year, month, day, h, mi, s
+        helpers.Time.StandardTimeToUTC @offset, year, month, day, h, mi, s
 
 class ZoneSet
     constructor: (@zones = []) ->
@@ -45,6 +45,7 @@ class ZoneSet
 
         # TODO: Does not check for consistent names on load?
 
+    # Adds a zone to this sets collection
     add: (zone) ->
         # Update the name of the zone if this is the first zone we're adding
         if @zones.length == 0 and @name == ""
@@ -57,9 +58,15 @@ class ZoneSet
         # Add this zone to the current zones
         @zones.push zone
 
-    # Gets the standard time of the passed in utc time for this time zone
-    getStandardTime: (dt) ->
+    findApplicable: (dt) ->
+        ts = dt.getTime()
+        found = null
+        for zone in @zones
+            if zone.range.begin.getTime() <= ts <= zone.range.end.getTime()
+                found = zone
+                break
 
+        found
 
 
 module.exports = 

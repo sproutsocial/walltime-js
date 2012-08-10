@@ -92,6 +92,7 @@ class Rule
         
         @updateRange @gmtOffset
 
+    # Updates the begin and end times to reflect the zone offset being applied
     updateRange: (offset) ->
         @gmtOffset = offset
         @isMax = false
@@ -119,8 +120,8 @@ class Rule
         endTime.setUTCMilliseconds(endTime.getUTCMilliseconds() - 1)
 
         # this will convert our time to standard time
-        endTime = helpers.Time.UTCToStandardTime endTime, @gmtOffset, @save
-        
+        endTime = helpers.Time.UTCToStandardTime endTime, @gmtOffset
+
         fromYear = parseInt @_from, 10
         begin = helpers.Time.MakeDateFromParts fromYear, 0, 1
         # Does this need to include the daylight savings from this rule or the previous one?

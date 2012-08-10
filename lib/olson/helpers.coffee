@@ -107,6 +107,11 @@ Time =
         # Jump up the daylight savings, return the value
         @ApplyOffset dt, { negative: true, hours: r.save.hours, mins: r.save.mins, secs: 0 }
 
+    StandardTimeToUTC: (offset, y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
+        dt = @MakeDateFromParts y, m, d, h, mi, s, ms
+        # Jump up the gmt Offset
+        @ApplyOffset dt, offset
+
     # Make a date from the passed in parts
     MakeDateFromParts: (y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
         if Date.UTC

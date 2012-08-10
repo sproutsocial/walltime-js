@@ -1,29 +1,28 @@
 should = require "should"
 helpers = require "../lib/olson/helpers"
 
-describe "Javascript Dates", ->
-    # These are tests to confirm my assumptions about javascript dates
-    commonDateCompare = (y, m, d, h, mi, s, ms) ->
-        dt = helpers.Time.MakeDateFromParts y, m, d, h, mi, s, ms
-
-        dt.getUTCFullYear().should.equal y, "year"
-        dt.getUTCMonth().should.equal m, "month"
-        dt.getUTCDate().should.equal d, "day"
-        dt.getUTCHours().should.equal h, "hour"
-        dt.getUTCMinutes().should.equal mi, "minute"
-        dt.getUTCSeconds().should.equal s, "second"
-        dt.getUTCMilliseconds().should.equal ms, "millisecond"
-
-    it "are correct for 2012 before Daylight Savings using default constructor", ->
-        commonDateCompare 2012, 3-1, 11, 1, 59, 59, 999
-
-    it "are correct for 2012 after Daylight Savings using default constructor", ->
-        # Note the change over to 3:00 for this time zone
-        commonDateCompare 2012, 3-1, 11, 2, 0, 0, 0
-
 describe "Olson Helpers", ->
     
     describe "Time Helpers", ->
+        # These are tests to confirm my assumptions about javascript dates
+        commonDateCompare = (y, m, d, h, mi, s, ms) ->
+            dt = helpers.Time.MakeDateFromParts y, m, d, h, mi, s, ms
+
+            dt.getUTCFullYear().should.equal y, "year"
+            dt.getUTCMonth().should.equal m, "month"
+            dt.getUTCDate().should.equal d, "day"
+            dt.getUTCHours().should.equal h, "hour"
+            dt.getUTCMinutes().should.equal mi, "minute"
+            dt.getUTCSeconds().should.equal s, "second"
+            dt.getUTCMilliseconds().should.equal ms, "millisecond"
+
+        it "can MakeDateFromParts correctly for 2012 before Daylight Savings using default constructor", ->
+            commonDateCompare 2012, 3-1, 11, 1, 59, 59, 999
+
+        it "can MakeDateFromParts correctly for 2012 after Daylight Savings using default constructor", ->
+            # Note the change over to 3:00 for this time zone
+            commonDateCompare 2012, 3-1, 11, 2, 0, 0, 0
+
         it "can parse times", ->
             [hours, mins, qual] = helpers.Time.ParseTime "23:00"
 
