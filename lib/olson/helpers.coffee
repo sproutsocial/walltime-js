@@ -54,19 +54,21 @@ Time =
         # return the parts
         timeParts
 
-    # Applies a GMT Style Offset.  -5:50:36 would return a new time that is 5 hours, 50 minutes and 36 seconds ahead of the passed in one
-    # This is used to reconcile a date to UTC time, however, if reverse is passed we can convert from UTC to an offset GMT Standard time
+    # Applies a GMT Style Offset.  -5:50:36 would return a new time that is 5 hours, 50 minutes and 36 seconds behind the passed in one
+    # This is used to reconcile a UTC time to standard time, however, if reverse is passed we can convert from GMT Standard time to UTC
     ApplyOffset: (dt, offset, reverse) ->
         offset_ms = (Milliseconds.inHour * offset.hours) + (Milliseconds.inMinute * offset.mins) + (Milliseconds.inSecond * offset.secs)
 
-        if !reverse
-            offset_ms = offset_ms * -1 if !offset.negative
+        offset_ms = offset_ms * -1 if offset.negative
+
+        if reverse
+            offset_ms = offset_ms * -1
 
         @MakeDateFromTimeStamp(dt.getTime() + offset_ms)
 
     # Applies a SAVE value by adjusting the time forward by the time passed in.
     ApplySave: (dt, save) ->
-        @ApplyOffset dt, { negative: true, hours: save.hours, mins: save.mins, secs: 0}
+        @ApplyOffset dt, { negative: false, hours: save.hours, mins: save.mins, secs: 0}
 
     UTCToWallTime: (dt, offset, save) ->
         # Apply the gmt offset in reverse to the endTime because all our dates are represented with UTC underneath
@@ -114,7 +116,11 @@ Time =
     StandardTimeToUTC: (offset, y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
         dt = @MakeDateFromParts y, m, d, h, mi, s, ms
         # Jump up the gmt Offset
-        @ApplyOffset dt, offset
+        @ApplyOffset dt, offset, true
+
+    StandardExistingToUTC: (offset, dt) ->
+        # Convenience method for already existing standard dates
+        @StandardTimeToUTC offset, dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate(), dt.getUTCHours(), dt.getUTCMinutes(), dt.getUTCSeconds(), dt.getUTCMilliseconds()
 
     # Make a date from the passed in parts
     MakeDateFromParts: (y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->

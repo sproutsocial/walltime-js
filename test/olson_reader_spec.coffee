@@ -48,6 +48,13 @@ describe "Olson Reader", ->
     it "can parse Rule lines with 'max' To field", ->
         reader = new OlsonReader
         rule = reader.processRuleLine maxRuleLine
+        offset = 
+            negative: false
+            hours: 0
+            mins: 0
+            secs: 0
+        rule.updateRange offset, -> { hours: 0, mins: 0 }
+
         maxDt = helpers.Time.MaxDate()
 
         # That's far enough for me

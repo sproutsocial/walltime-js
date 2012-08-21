@@ -52,7 +52,7 @@ describe "Olson Helpers", ->
             (isNaN seconds).should.equal true, "seconds2"
 
         it "can apply an offset", ->
-            # Start with 1/10/1920 12:00
+            # Start with 1/10/1920 12:00 UTC
             origDate = helpers.Time.MakeDateFromParts(1920, 0, 10, 12)
             offset = 
                 negative: true
@@ -63,8 +63,8 @@ describe "Olson Helpers", ->
             # Apply our offset of -5:50:36
             utcDate = helpers.Time.ApplyOffset origDate, offset
 
-            # Should be 1/10/1920 17:50:36
-            utcDate.should.equal helpers.Time.MakeDateFromParts(1920, 0, 10, 17, 50, 36)
+            # Should be 1/10/1920 6:09:24
+            utcDate.should.equal helpers.Time.MakeDateFromParts(1920, 0, 10, 6, 9, 24)
 
             offset.negative = false
             offset.mins = 0
@@ -74,7 +74,7 @@ describe "Olson Helpers", ->
             utcDate = helpers.Time.ApplyOffset origDate, offset
 
             # Should be 1/10/1920 17:00
-            utcDate.should.equal helpers.Time.MakeDateFromParts(1920, 0, 10, 7)
+            utcDate.should.equal helpers.Time.MakeDateFromParts(1920, 0, 10, 17)
 
         it "can apply a SAVE value", ->
             # Start with 1/10/1920 12:00
