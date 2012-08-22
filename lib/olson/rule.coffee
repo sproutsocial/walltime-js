@@ -1,6 +1,6 @@
-helpers = require "./helpers"
-Days = helpers.Days
-Months = helpers.Months
+if typeof window == 'undefined'
+    helpers = require "./helpers"
+    TimeZoneTime = require "./timezonetime"
 
 # Handles a straight number for the on field of a rule.
 class NumberOnFieldHandler
@@ -14,7 +14,7 @@ class LastOnFieldHandler
         # Get the last day with a matching name
         dayName = str[4..]
         # TODO: Always has a capital first letter?
-        dayIndex = Days.DayIndex dayName
+        dayIndex = helpers.Days.DayIndex dayName
 
         # To get the last day of the month we set the date to the first day of next month, and move back one day.
         
@@ -26,11 +26,11 @@ class LastOnFieldHandler
             lastDay = helpers.Time.MakeDateFromParts year + 1, 0
 
         # Move back one day to the last day of the current month.
-        lastDay = Days.AddToDate lastDay, -1
+        lastDay = helpers.Days.AddToDate lastDay, -1
 
         # Iterate backward until our dayIndex matches the last days index
         while lastDay.getUTCDay() != dayIndex
-            lastDay = Days.AddToDate lastDay, -1
+            lastDay = helpers.Days.AddToDate lastDay, -1
         
         return lastDay.getUTCDate()
 
@@ -52,7 +52,7 @@ class CompareOnFieldHandler
         if dateIndex is NaN
             throw new Error "Unable to parse the dateIndex of the 'on' rule for #{str}"
         
-        dayIndex = Days.DayIndex dayName
+        dayIndex = helpers.Days.DayIndex dayName
 
         # Set up the compare functions based on the conditional parsed from the onStr
         compares =
@@ -71,7 +71,7 @@ class CompareOnFieldHandler
 
         # Go forward one day at a time until we get a matching day of the week (Sun) and the compare of the date of the month passes (8 >= 8)
         while !(dayIndex == testDate.getUTCDay() and compareFunc(testDate.getUTCDate(), dateIndex))
-            testDate = Days.AddToDate testDate, 1
+            testDate = helpers.Days.AddToDate testDate, 1
 
         return testDate.getUTCDate()
 
@@ -112,7 +112,7 @@ class Rule
         @toUTC = helpers.Time.ApplyOffset @toUTC, offset
 
     setOnUTC: (year, offset, getPrevSave) ->
-        toMonth = Months.MonthIndex @in
+        toMonth = helpers.Months.MonthIndex @in
         onParsed = parseInt @on, 10
         toDay = if !isNaN(onParsed) then onParsed else @_parseOnDay @on, year, toMonth
 
@@ -147,10 +147,6 @@ class Rule
 
     _parseTime: (atStr) ->
         helpers.Time.ParseTime atStr
-
-noSave = 
-    hours: 0
-    mins: 0
     
 class RuleSet
     constructor: (@rules, @timeZone) ->
@@ -162,7 +158,7 @@ class RuleSet
         beginYears = {}
         for rule in @rules
             # In the first pass through, we won't have accurate end's
-            rule.forZone @timeZone.offset, -> noSave
+            rule.forZone @timeZone.offset, -> helpers.noSave
             if min == null or rule.from < min
                 min = rule.from
             if max == null or rule.to > max
@@ -174,6 +170,7 @@ class RuleSet
             beginYears[rule.from].push rule
             index++
 
+        # Store these for later range checks on rules.
         @minYear = min
         @maxYear = max
 
@@ -208,16 +205,12 @@ class RuleSet
         (rule for rule in @rules when rule.appliesToUTC dt)
 
     getWallTimeForUTC: (dt) ->
-        # Prepare our result
-        result = 
-            utc: dt
-            offset: @timeZone.offset
-            save: 
-                hours: 0
-                mins: 0
-
         # Get the rules for this year
         rules = @allThatAppliesTo dt
+
+        # If no rules apply, return standard time
+        if rules.length < 1
+            return new TimeZoneTime(dt, @timeZone, helpers.noSave)
 
         # Sort the rules.
         rules = @_sortRulesByOnTime rules
@@ -226,39 +219,31 @@ class RuleSet
             idx = rules.indexOf r
             # Return no save if this is the first rule (or not found)
             if idx < 1
-                return noSave
+                return helpers.noSave
 
             # Return the previous rules save value otherwise
             rules[idx-1].save
 
         # Update the onTimes for each of the rules
         for rule in rules
-            rule.setOnUTC dt.getUTCFullYear(), result.offset, getPrevRuleSave
+            rule.setOnUTC dt.getUTCFullYear(), @timeZone.offset, getPrevRuleSave
 
         # Get rules that applied to us
         appliedRules = (rule for rule in rules when rule.onUTC.getTime() < dt.getTime())
 
         # Return the standard time if no rules applied.
-        result.wallTime = helpers.Time.ApplyOffset result.utc, result.offset
-        if appliedRules.length < 1
-            return result
+        lastSave = helpers.noSave
+        if appliedRules.length > 0
+            # Get the last rule that applied, then use its save time
+            lastSave = appliedRules.slice(-1)[0].save
 
-        # Get the last rule that applieds save time
-        lastSave = appliedRules.slice(-1)[0].save
-        # Apply the save time to the result.
-        result.save = lastSave
-        result.wallTime = helpers.Time.ApplySave result.wallTime, lastSave
-
-        result
-
+        new TimeZoneTime(dt, @timeZone, lastSave)
 
     _sortRulesByOnTime: (rules) ->
         rules.sort (a, b) ->
             (helpers.Months.MonthIndex a.in) - (helpers.Months.MonthIndex b.in)
 
-
-
-module.exports = 
+lib = 
     Rule: Rule
     RuleSet: RuleSet
     OnFieldHandlers:
@@ -266,4 +251,8 @@ module.exports =
         LastHandler: LastOnFieldHandler
         CompareHandler: CompareOnFieldHandler
 
+if typeof window == 'undefined'
+    module.exports = lib
+else
+    define ["helpers", "TimeZoneTime"], "rule", lib
             

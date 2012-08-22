@@ -140,7 +140,7 @@ describe "Olson Rules", ->
             result[1].should.equal rules[1], "second rule"
 
         it "can get WallTime for before rules take effect", ->
-            # Beginning of year with 2 rules.
+            # Before any rules
             point = helpers.Time.MakeDateFromParts 1900, 0, 1
 
             commonWallTimeTest point, chiZone, noSaveState

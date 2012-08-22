@@ -1,4 +1,7 @@
-helpers = require "./helpers"
+if typeof window == 'undefined'
+    helpers = require "./helpers"
+    rule = require "./rule"
+    TimeZoneTime = require "./timezonetime"
 
 # A Zone represents an Olson file line describing a steady state between two dates (or infinity for the last line of most zones)
 # and either a static time offset or set of rules to apply to determine the offset from "Local Time"
@@ -12,7 +15,7 @@ class Zone
             mins: offsetMins
             secs: if isNaN(offsetSecs) then 0 else offsetSecs
 
-        begin = if currZone then currZone.range.end else helpers.Time.MinDate()
+        begin = if currZone then helpers.Time.MakeDateFromTimeStamp(currZone.range.end.getTime() + 1) else helpers.Time.MinDate()
         @range =
             begin: begin
             end: @_parseUntilDate @_until
@@ -24,45 +27,42 @@ class Zone
         [year, monthName, day, time] = til.split " "
         [neg, h, mi, s] = if time then helpers.Time.ParseGMTOffset time else [false, 0, 0, 0]
 
+        s = if isNaN(s) then 0 else s
+
         # return max date if we have no values
         return helpers.Time.MaxDate() if !year || year == ""
 
         # Otherwise, parse what we have
         year = parseInt year, 10
         month = if monthName then helpers.Months.MonthIndex monthName else 0
-        day = if day then parseInt day, 10 else 0
+        day = if day then parseInt(day, 10) else 0
 
-        helpers.Time.StandardTimeToUTC @offset, year, month, day, h, mi, s
+        # TODO: The end time here is standard, but there are situations where it should have a dst applied (australasia)
 
-    UTCToWallTime: (dt, getRuleSave) ->
-        # First convert to standard time with this zones gmt offset
-        standard = helpers.Time.UTCToStandardTime dt, @offset
+        standardTime = helpers.Time.StandardTimeToUTC @offset, year, month, day, h, mi, s
+        # The end time is not inclusive, so back off by 1 millisecond
+        endTime = helpers.Time.MakeDateFromTimeStamp(standardTime.getTime() - 1)
 
+        return endTime
+
+    UTCToWallTime: (dt, getRulesNamed) ->
         # Standard Time
-        result = standard
         if @_rule == "-" or @_rule == ""
-            # Already converted to Standard
-            return result
+            # Apply the current offset, but no save.
+            return new TimeZoneTime dt, @, helpers.noSave
 
         # Static Offset
         if @_rule.indexOf(":") >= 0
-            # Add on the static savings
+            # Add on the static savings and the offset
             [hours, mins] = helpers.Time.ParseTime @_rule
-            result = helpers.Time.ApplySave standard, { hours: hours, mins: mins }
-            return result
+            return new TimeZoneTime dt, @, { hours: hours, mins: mins }
 
-        # Only thing left is applying a rule.
-        result = helpers.Time.ApplySave standard, getRuleSave(@_rule, @offset, standard, dt)
-
-        result
-        
-
-    _wallTimeFromRules: (dt, rules) ->
-        # TODO: Apply rules
-        dt
+        # Applying a rule, which a rule set will do for us.
+        rules = new rule.RuleSet((getRulesNamed @_rule), @)
+        rules.getWallTimeForUTC dt
 
 class ZoneSet
-    constructor: (@zones = []) ->
+    constructor: (@zones = [], @getRulesNamed) ->
         
         # Set a name from the passed in zones or default to ""
         if @zones.length > 0
@@ -95,7 +95,18 @@ class ZoneSet
 
         found
 
+    getWallTimeForUTC: (dt) ->
+        applicable = @findApplicable dt
 
-module.exports = 
+        return new TimeZoneTime(dt, helpers.noZone, helpers.noSave) if not applicable
+
+        applicable.UTCToWallTime dt, @getRulesNamed
+
+lib = 
     Zone: Zone
     ZoneSet: ZoneSet
+
+if typeof window == 'undefined'
+    module.exports = lib
+else
+    define ["helpers", "TimeZoneTime", "rule"], "zone", lib

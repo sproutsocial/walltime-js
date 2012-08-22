@@ -29,6 +29,23 @@ describe "Olson Zones", ->
     defaultSet = ->
         makeSet fullZoneLine, secondZoneLine, thirdZoneLine, endZoneLine
 
+    makeZone = ->
+        new OlsonZone("America/Chicago", "-5:50:36", "-", "LMT", "1883 Nov 18 12:09:24")
+
+    it "can set the begin and end range correctly", ->
+        zone = makeZone()
+
+        expect = helpers.Time.MakeDateFromParts 1883, 10, 18, 12, 9, 24
+        expect = helpers.Time.ApplyOffset expect, 
+            negative: true
+            hours: 5
+            mins: 50
+            secs: 36
+
+        expect = helpers.Time.MakeDateFromTimeStamp(expect.getTime() - 1)
+
+        zone.range.end.toUTCString().should.equal expect.toUTCString()
+
     it "can process from full Zone lines with beginning having minimum date", ->
         zone = processZone fullZoneLine
 
@@ -40,25 +57,20 @@ describe "Olson Zones", ->
         # Moses time and what-not is far enough for me.
         beginYear.should.be.below -2000
 
-    it "can process from full Zone lines with end time in standard time", ->
-        zone = processZone fullZoneLine
-
-        zone.range.end.should.equal helpers.Time.StandardTimeToUTC zone.offset, 1883, 10, 18, 12, 9, 24
-
     it "can process subsequent Zone lines", ->
         initialZone = processZone fullZoneLine
 
         secondZone = processZone secondZoneLine, initialZone
 
-        secondZone.range.begin.should.equal initialZone.range.end, "1 -> 2 Zones"
+        secondZone.range.begin.should.equal helpers.Time.MakeDateFromTimeStamp(initialZone.range.end.getTime() + 1), "1 -> 2 Zones"
 
         thirdZone = processZone thirdZoneLine, secondZone
 
-        thirdZone.range.begin.should.equal secondZone.range.end, "2 -> 3 Zones"
+        thirdZone.range.begin.should.equal helpers.Time.MakeDateFromTimeStamp(secondZone.range.end.getTime() + 1), "2 -> 3 Zones"
 
         endZone = processZone endZoneLine, thirdZone
 
-        endZone.range.begin.should.equal thirdZone.range.end, "3 -> 4 Zones"
+        endZone.range.begin.should.equal helpers.Time.MakeDateFromTimeStamp(thirdZone.range.end.getTime() + 1), "3 -> 4 Zones"
 
         # Max Date
         endZone.range.end.getUTCFullYear().should.be.above 20000
@@ -76,7 +88,7 @@ describe "Olson Zones", ->
 
         resultTime = firstZone.UTCToWallTime origTime
 
-        resultTime.should.equal standardTime
+        resultTime.wallTime.should.equal standardTime
 
     it "can convert a time to offset time when static offset rule is specified", ->
         zoneSet = makeSet fullZoneLine, static1HourZoneLine, endZoneLine
@@ -93,7 +105,7 @@ describe "Olson Zones", ->
 
         resultTime = staticZone.UTCToWallTime origTime
 
-        resultTime.should.equal offsetTime
+        resultTime.wallTime.should.equal offsetTime
 
     it "can convert a time to offset time when a named rule is specified", ->
         zoneSet = defaultSet()
@@ -112,15 +124,11 @@ describe "Olson Zones", ->
 
         dstTime = helpers.Time.ApplySave standardTime, save
 
-        getSaveForRule = (ruleName, offset, std, utc) ->
-            ruleName.should.equal "US"
-            offset.should.equal namedRuleZone.offset
-            std.should.equal standardTime
-            utc.should.equal origTime
-            # Return our static save value.  We're not testing rule processing here.
-            save
+        getRules = (ruleName) ->
+            ruleName.should.equal namedRuleZone._rule
+            []
 
-        resultTime = namedRuleZone.UTCToWallTime origTime, getSaveForRule
+        resultTime = namedRuleZone.UTCToWallTime origTime, getRules
 
     describe "Zone Sets", ->
 

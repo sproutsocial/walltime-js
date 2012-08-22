@@ -1,4 +1,4 @@
-# TODO: Move this
+
 
 # Some helpers for going between day names and indices.
 Days = 
@@ -100,7 +100,7 @@ Time =
     StandardTimeToUTC: (offset, y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
         dt = @MakeDateFromParts y, m, d, h, mi, s, ms
         # Jump up the gmt Offset
-        @ApplyOffset dt, offset, true
+        @ApplyOffset dt, offset
 
     # Make a date from the passed in parts
     MakeDateFromParts: (y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
@@ -131,7 +131,22 @@ Time =
         # Mon, 06 Dec -25410 00:00:00 GMT
         @MakeDateFromTimeStamp -10000000*86400000
 
-module.exports = 
+helpers = 
     Days: Days
     Months: Months
     Time: Time
+    noSave:
+        hours: 0
+        mins: 0
+    noZone:
+        offset:
+            negative: false
+            hours: 0
+            mins: 0
+            secs: 0
+    name: "UTC"
+
+if typeof window == 'undefined'
+    module.exports = helpers
+else
+    define "helpers", helpers
