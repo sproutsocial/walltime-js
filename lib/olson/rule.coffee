@@ -100,18 +100,16 @@ class Rule
             mins: saveMinute
 
     forZone: (offset) ->
+        @offset = offset
+
         # Start with the beginning of the year UTC
         @fromUTC = helpers.Time.MakeDateFromParts @from, 0, 1, 0, 0, 0
         # Apply the passed in time zones offset to get the standard time equivalent of the beginning of the year.
         @fromUTC = helpers.Time.ApplyOffset @fromUTC, offset
-        # Apply any previous daylight savings from last years applicable rules.
-        # @fromUTC = helpers.Time.ApplySave @fromUTC, getPrevSave(@fromUTC)
-
+        
         # To is the end of the passed in To year, adjusted for GMTOffset and Daylight savings
         @toUTC = helpers.Time.MakeDateFromParts @to, 11, 31, 23, 59, 59, 999
         @toUTC = helpers.Time.ApplyOffset @toUTC, offset
-        # Daylight savings is tricky, because the end of the year could have other rules applied that we haven't processed yet.
-        # @toUTC = helpers.Time.ApplySave @toUTC, getPrevSave(@toUTC)
 
     setOnUTC: (year, offset, getPrevSave) ->
         toMonth = Months.MonthIndex @in
@@ -120,94 +118,18 @@ class Rule
 
         # Get the time of day and apply it to the onUTC
         [toHour, toMinute, atQualifier] = @_parseTime @at
-        # The time
+        # The end time here is not inclusive, we adjust it by 1 millisecond
         @onUTC = helpers.Time.MakeDateFromParts year, toMonth, toDay, toHour, toMinute
+        @onUTC.setUTCMilliseconds(@onUTC.getUTCMilliseconds() - 1)
 
         @atQualifier = if atQualifier != '' then atQualifier else "w"
 
-        switch @atQualifier
-            when "w"
-                # Wall Time: Apply offset and previous save rule
-                @onUTC = helpers.Time.ApplyOffset @onUTC, offset
-                @onUTC = helpers.Time.ApplySave @onUTC, getPrevSave(@)
-            when "s"
-                # Standard Time: Apply offset only.
-                @onUTC = helpers.Time.ApplyOffset @onUTC, offset
-            else
-                # UTC Time: Do nothing, because time is already in UTC.
+        @onUTC = helpers.Time.UTCToQualifiedTime @onUTC, @atQualifier, offset, => getPrevSave(@)
 
         @onSort = "#{toMonth}-#{toDay}-#{@onUTC.getUTCHours()}-#{@onUTC.getUTCMinutes()}"     
 
     appliesToUTC: (dt) ->
         @fromUTC <= dt <= @toUTC
-
-    # Updates the begin and end times to reflect the zone offset being applied
-    updateRange: (offset, getSaveState) ->
-        @gmtOffset = offset
-        @isMax = false
-        toYear = @from
-        switch @_to
-            when "max"
-                toYear = (helpers.Time.MaxDate()).getUTCFullYear()
-                @isMax = true
-            when "only"
-                toYear = @from
-            else
-                toYear = parseInt @_to, 10
-
-        [toHour, toMinute, atQualifier] = @_parseTime @at
-        # If there was an at qualifier like s, u, g, or z we should keep that for later
-        # Otherwise we default to the "Wall Time"
-        @atQualifier = if atQualifier != '' then atQualifier else "w"
-
-        toMonth = Months.MonthIndex @in
-        onParsed = parseInt @on, 10
-        toDay = if !isNaN(onParsed) then onParsed else @_parseOnDay @on, toYear, toMonth, getSaveState()
-
-        # The end time here is not inclusive, it should be 1 millisecond less
-        # Adjust the end time appropriately
-        endTime = helpers.Time.MakeDateFromParts toYear, toMonth, toDay, toHour, toMinute, 0, 0
-        endTime.setUTCMilliseconds(endTime.getUTCMilliseconds() - 1)
-
-        # this will convert our time to standard time
-        endTime = helpers.Time.UTCToStandardTime endTime, @gmtOffset
-
-        fromYear = @from
-        begin = helpers.Time.MakeDateFromParts fromYear, 0, 1
-        # TODO: Does this need to include the daylight savings from this rule or the previous one?
-        begin = helpers.Time.UTCToStandardTime begin, @gmtOffset
-
-        @range =
-            begin: begin
-            end: endTime
-        
-
-    checkRuleApplicability: (dt, getCurrentSave) ->
-        stdDt = helpers.Time.UTCToStandardTime dt, @gmtOffset
-        # Checking for earlier than begin time (in standard time)
-        return false if stdDt.getTime() < @range.begin.getTime() 
-        
-        if @atQualifier == "s"
-            # Begin and End are already in standard time.
-            return stdDt.getTime() <= @range.end.getTime()
-
-        if @atQualifier == "w"
-            # Convert end time to wall time
-            # Get the previous applicable rules save state
-            prevSave = getCurrentSave @, dt
-
-            # I think this is redundant since we apply the save to both, couldn't we just compare without applying?
-            wallEnd = helpers.Time.ApplySave @range.end, prevSave
-            wallDt = helpers.Time.ApplySave stdDt, prevSave
-
-            return wallDt.getTime() <= wallEnd.getTime()
-
-        # Falls through to UTC Time comparison (u, g, z)
-        # Convert the end time from standard to UTC
-        utcEnd = helpers.Time.StandardExistingToUTC @gmtOffset, @range.end
-
-        return dt.getTime() <= utcEnd.getTime()
-
 
     # Parse the string that represents the day of the month in the "on" field of a rule.
     # In addition to an actual number this can be strings like "lastSun", "Sun>=8" representing
@@ -232,8 +154,6 @@ noSave =
     
 class RuleSet
     constructor: (@rules, @timeZone) ->
-        # TODO: Is there an order that these should be sorted by?
-
         # Update the rules offsets
         index = 0
         min = null
@@ -279,7 +199,7 @@ class RuleSet
         # Follow up and check each end year for a last rule with a save value.
         commonUpdateYearEnds "toUTC", endYears
 
-        # TODO: The begin times could also have a save applied that we missed.
+        # The begin times could also have a save applied that we missed.
         commonUpdateYearEnds "fromUTC", beginYears
 
     allThatAppliesTo: (dt) ->
@@ -326,6 +246,7 @@ class RuleSet
         # Get the last rule that applieds save time
         lastSave = appliedRules.slice(-1)[0].save
         # Apply the save time to the result.
+        result.save = lastSave
         result.wallTime = helpers.Time.ApplySave result.wallTime, lastSave
 
         result

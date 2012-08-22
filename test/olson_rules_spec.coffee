@@ -100,15 +100,6 @@ describe "Olson Rules", ->
         expected = helpers.Time.ApplyOffset expected, chiZone.offset
         rule.toUTC.should.equal expected, "Chi - No Save State"
 
-    # TODO
-    #it "can tell when a date falls within it's range for standard time",
-
-    # TODO
-    #it "can tell when a date falls within it's range for utc time", 
-
-    # TODO
-    #it "can tell when a date falls within it's range for wall time", 
-
     describe "Sets", ->
         rules = [
             new OlsonRule("Chicago", "1920", "only", "-", "Jun", "13", "2:00", "1:00", "D"),
@@ -121,6 +112,24 @@ describe "Olson Rules", ->
             
         set = new OlsonRuleSet(rules, chiZone)
 
+        commonWallTimeTest = (point, zone, save) ->
+                result = set.getWallTimeForUTC point
+
+                result.offset.hours.should.equal zone.offset.hours, "Offset hours"
+                result.offset.mins.should.equal zone.offset.mins, "Offset mins"
+                result.offset.secs.should.equal zone.offset.secs, "Offset secs"
+
+                result.save.hours.should.equal save.hours
+                result.save.mins.should.equal save.mins
+
+                result.utc.should.equal point, "UTC time"
+
+                expect = point
+                expect = helpers.Time.ApplyOffset expect, result.offset
+                expect = helpers.Time.ApplySave expect, result.save
+
+                result.wallTime.should.equal expect
+
         it "can tell what rules apply for a given UTC time", ->
             point = helpers.Time.MakeDateFromParts 1920, 0, 1
 
@@ -130,18 +139,49 @@ describe "Olson Rules", ->
             result[0].should.equal rules[0], "first rule"
             result[1].should.equal rules[1], "second rule"
 
-        it "can give an accurate offset and save value for a UTC Time", ->
+        it "can get WallTime for before rules take effect", ->
+            # Beginning of year with 2 rules.
+            point = helpers.Time.MakeDateFromParts 1900, 0, 1
+
+            commonWallTimeTest point, chiZone, noSaveState
+
+        it "can get WallTime for beginning of year", ->
             # Beginning of year with 2 rules.
             point = helpers.Time.MakeDateFromParts 1920, 0, 1
 
-            result = set.getWallTimeForUTC point
+            commonWallTimeTest point, chiZone, noSaveState
 
-            result.offset.hours.should.equal chiZone.offset.hours, "Offset hours"
-            result.offset.mins.should.equal chiZone.offset.mins, "Offset mins"
-            result.offset.secs.should.equal chiZone.offset.secs, "Offset secs"
+        it "can get WallTime for before dst rule takes effect", ->
+            # Immediately before the dst rule
+            point = helpers.Time.MakeDateFromParts 1920, 5, 13, 1, 59, 59
+            point = helpers.Time.ApplyOffset point, chiZone.offset
+            
+            commonWallTimeTest point, chiZone, noSaveState
 
-            result.save.hours.should.equal 0
+        it "can get WallTime with 1 hour saved for after dst rule", ->
+            # Immediately after the daylight savings rule (second of)
+            point = helpers.Time.MakeDateFromParts 1920, 5, 13, 2, 0, 0
+            point = helpers.Time.ApplyOffset point, chiZone.offset
+            
+            commonWallTimeTest point, chiZone, dstSaveState
 
+        it "can get WallTime for right before switching to no dst", ->
+
+            # Immediately before the dst rule expires
+            point = helpers.Time.MakeDateFromParts 1920, 9, 31, 1, 59, 59
+            point = helpers.Time.ApplyOffset point, chiZone.offset
+            point = helpers.Time.ApplySave point, dstSaveState
+
+            commonWallTimeTest point, chiZone, dstSaveState
+
+        it "can get WallTime for after dst expires", ->
+
+            # Immediately after the dst rule expires
+            point = helpers.Time.MakeDateFromParts 1920, 9, 31, 2, 0, 0
+            point = helpers.Time.ApplyOffset point, chiZone.offset
+            point = helpers.Time.ApplySave point, dstSaveState
+
+            commonWallTimeTest point, chiZone, noSaveState
 
 
 

@@ -71,29 +71,24 @@ Time =
         @ApplyOffset dt, { negative: false, hours: save.hours, mins: save.mins, secs: 0}
 
     UTCToWallTime: (dt, offset, save) ->
-        # Apply the gmt offset in reverse to the endTime because all our dates are represented with UTC underneath
+        # Apply the gmt offset to the endTime
         # This is the "standard" time; offset but without daylight savings rules applied
         endTime = @UTCToStandardTime dt, offset
 
         # Apply the daylight savings to the offset
         # Moves the clock forward the amount of time in 'save'
-        endTime = Time.ApplyOffset dt, { negative: false, hours: save.hours, mins: save.mins, secs: 0 }
-
-        # Return our modified endTime
-        endTime
+        @ApplySave endTime, save
 
     UTCToStandardTime: (dt, offset) ->
-        # Apply the gmt offset in reverse to the endTime because all our dates are represented with UTC underneath
-        endTime = Time.ApplyOffset dt, offset, true
+        # Apply the gmt offset to the endTime because all our dates are represented with UTC underneath
+        @ApplyOffset dt, offset
 
-        endTime
-
-    UTCToQualifiedTime: (dt, qualifier, offset, save) ->
+    UTCToQualifiedTime: (dt, qualifier, offset, getSave) ->
         endTime = dt
         switch qualifier
             when "w"
                 # Wall Time, apply gmt offset then daylight savings
-                endTime = @UTCToWallTime endTime, offset, save
+                endTime = @UTCToWallTime endTime, offset, getSave()
             when "s"
                 # Standard Time, apply gmt offset only
                 endTime = @UTCToStandardTime endTime, offset
@@ -102,25 +97,10 @@ Time =
 
         endTime
 
-    # Convenience method
-    UTCToRuleTime: (dt, rule) ->
-        @UTCToQualifiedTime dt, rule.atQualifier, rule.gmtOffset, rule.save
-
-    RuleTimeToUTC: (r, y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
-        dt = @MakeDateFromParts y, m, d, h, mi, s, ms
-        # Jump up the gmt Offset
-        dt = @ApplyOffset dt, r.gmtOffset
-        # Jump up the daylight savings, return the value
-        @ApplyOffset dt, { negative: true, hours: r.save.hours, mins: r.save.mins, secs: 0 }
-
     StandardTimeToUTC: (offset, y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
         dt = @MakeDateFromParts y, m, d, h, mi, s, ms
         # Jump up the gmt Offset
         @ApplyOffset dt, offset, true
-
-    StandardExistingToUTC: (offset, dt) ->
-        # Convenience method for already existing standard dates
-        @StandardTimeToUTC offset, dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate(), dt.getUTCHours(), dt.getUTCMinutes(), dt.getUTCSeconds(), dt.getUTCMilliseconds()
 
     # Make a date from the passed in parts
     MakeDateFromParts: (y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
@@ -144,14 +124,11 @@ Time =
     MakeDateFromTimeStamp: (ts) ->
         new Date(ts)
 
-    # Make a date from a string
-    MakeDateFromParse: (str) ->
-        # TODO: Should we even allow this?
-        new Date((new Date(str)).getTime())
-
     MaxDate: ->
+        # Sun, 26 Jan 29349 00:00:00 GMT
         @MakeDateFromTimeStamp 10000000*86400000
     MinDate: ->
+        # Mon, 06 Dec -25410 00:00:00 GMT
         @MakeDateFromTimeStamp -10000000*86400000
 
 module.exports = 

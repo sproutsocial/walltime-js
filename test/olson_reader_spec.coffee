@@ -53,12 +53,12 @@ describe "Olson Reader", ->
             hours: 0
             mins: 0
             secs: 0
-        rule.updateRange offset, -> { hours: 0, mins: 0 }
+        rule.forZone offset
 
         maxDt = helpers.Time.MaxDate()
 
         # That's far enough for me
-        rule.range.end.getUTCFullYear().should.above 20000
+        rule.toUTC.getUTCFullYear().should.above 20000
 
     it "can parse Zone lines with name and comments at the end", ->
         reader = new OlsonReader
