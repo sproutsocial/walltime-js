@@ -1,5 +1,3 @@
-
-
 # Some helpers for going between day names and indices.
 Days = 
     DayShortNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -144,9 +142,12 @@ helpers =
             hours: 0
             mins: 0
             secs: 0
-    name: "UTC"
+        name: "UTC"
 
 if typeof window == 'undefined'
     module.exports = helpers
+else if typeof define != 'undefined'
+    define helpers
 else
-    define "helpers", helpers
+    @.WallTime = @.WallTime || {}
+    @.WallTime.helpers = helpers
