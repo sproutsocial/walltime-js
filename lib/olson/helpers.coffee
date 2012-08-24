@@ -149,5 +149,5 @@ if typeof window == 'undefined'
 else if typeof define != 'undefined'
     define helpers
 else
-    @.WallTime = @.WallTime || {}
+    @.WallTime or= {}
     @.WallTime.helpers = helpers

@@ -66,8 +66,11 @@ class OlsonReader
             if !curr or @_isEmptyLine(curr) or curr[0] == "#"
                 return true
 
-            # Rules always have RULE in front.
-            if curr.slice(0, 4).toUpperCase() is "RULE"
+            firstFour = curr.slice(0, 4).toUpperCase()
+            if firstFour is "LEAP" or firstFour is "LINK"
+                # Not supported yet... v 2.0
+                return true
+            else if firstFour is "RULE"
                 # Reset the current zone if this is a new rule declaration
                 inZone = null
                 rule = null

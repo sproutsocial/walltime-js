@@ -12,7 +12,16 @@ Dates in javascript do not account for daylight savings time for regions that us
 walltime-js helps with:
 
 - Translating a UTC time to a "Wall Time" for a particular time zone.
-- Translating a "Wall Time" for a particular time zone to a UTC time.
+
+## Usage
+
+    <script src="/path/to/walltime-data.js"></script>
+    <script src="/path/to/walltime.js"></script>
+    <script type="text/javascript">
+        WallTime.setTimeZone("America/Chicago");
+        var someUTCDate = new Date(new Date().getTime()),
+            chicagoWallTime = WallTime.UTCToWallTime(someUTCDate);
+    </script>
 
 ## Key Terms
 

@@ -26,5 +26,5 @@ if typeof window == 'undefined'
 else if typeof define != 'undefined'
     define ["olson/helpers"], "TimeZoneTime", init
 else
-    @.WallTime = @.WallTime || {}
+    @.WallTime or= {}
     @.WallTime.TimeZoneTime = init(@.WallTime.helpers)

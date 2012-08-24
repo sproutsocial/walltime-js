@@ -17,10 +17,14 @@ init = (zone) ->
 
             matches = @zones[name]
             @zoneSet = new zone.ZoneSet(matches.zones, (ruleName) => @rules[ruleName])
+            @timeZoneName = name
 
-        UTCToWallTime: (dt) ->
+        UTCToWallTime: (dt, zoneName = @timeZoneName) ->
             if !@zoneSet
                 throw new Error "Must set the time zone before converting times"
+
+            if zoneName != @timeZoneName
+                @setTimeZone zoneName
 
             @zoneSet.getWallTimeForUTC dt
 
@@ -33,7 +37,7 @@ if typeof window == 'undefined'
 else if typeof define != 'undefined'
     define ['olson/zone'], init
 else
-    @.WallTime = @.WallTime || {}
+    @.WallTime or= {}
 
     # Some trickery here because we want a clean window.WallTime api,
     # But still have to keep the @.WallTime.helpers etc.
@@ -42,6 +46,11 @@ else
         api[key] = val
 
     @.WallTime = api
+
+    # Check for and initialize with the passed in data.
+    if @.WallTime.autoinit and @.WallTime.data?.rules and @.WallTime.data?.zoneSet
+        @.WallTime.init @.WallTime.data.rules, @.WallTime.data.zones
+
 
 
 
