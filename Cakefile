@@ -82,9 +82,14 @@ task 'build', 'Build the client side walltime.js library', ->
     log "Output to: #{fileName} and #{minFileName}"
 
 option "-f", "--filename [OLSON_FILE_NAME*]", "Specify which specific OLSON files to parse"
+option "-z", "--zonename [OLSON_ZONE_NAME*]", "Specify a specific zone to include"
+option "-i", "--olsonfiles [OLSON_FILE_LOCATION]", "Specify the olson file location"
+option "-o", "--outputname [FILE_NAME]", "Specify the output file name"
 
-task 'data', "Build the client side olson data package (defaults to all timezone files)", (opts) ->
+buildDataFile = (opts, callback) ->
   opts.filename or= []
+  opts.zonename or= []
+  opts.outputname or= "./client/walltime-data.js"
 
   allFiles = true
   filesToProcess = {}
@@ -97,23 +102,48 @@ task 'data', "Build the client side olson data package (defaults to all timezone
   else
     log "Processing All Files", bold
 
-  olsonFiles.downloadAndRead "./client/olson", (files) ->
+  allZones = true
+  zonesToProcess = {}
+  if opts.zonename.length != 0
+    allZones = false
+    # Set a lookup of what zones to process
+    zonesToProcess[name] = true for name in opts.zonename
+
+    log "Processing zones: " + opts.zonename.join(",")
+  else
+    log "Processing All Zones", bold
+
+  processOlsonFiles = (files) ->
     # Aggregate up the rules and zones from each file.
     rules = {}
     zones = {}
     # For each parsed file that we want to build data for
-    for own fileName, rulesZones of files 
-      continue if !allFiles and !filesToProcess[fileName]
-      log "Processed File: ", green, fileName
+    for own fileName, rulesZones of files when allFiles or filesToProcess[fileName]
+      # Add the zones to our existing zones
+      for own zoneName, zoneVals of rulesZones.zones
+        zones[zoneName] or= []
+        zones[zoneName].push.apply zones[zoneName], zoneVals.zones
 
       # Add the rules to our existing rules
       for own ruleName, ruleVals of rulesZones.rules
         rules[ruleName] or= []
         rules[ruleName].push.apply rules[ruleName], ruleVals
-      # Add the zones to our existing zones
-      for own zoneName, zoneVals of rulesZones.zones
-        zones[zoneName] or= []
-        zones[zoneName].push.apply zones[zoneName], zoneVals.zones
+      
+      log "Processed File: ", green, fileName
+
+    # If we aren't processing all zones, clean up our rules and zones
+    if !allZones
+      newZones = {}
+      newRules = {}
+      for own zoneName, zoneVals of zones when zonesToProcess[zoneName]
+        console.log "Processing #{zoneName}"
+        for zone in zoneVals when zone._rule != "-" and zone._rule != "" and rules[zone._rule] and !newRules[zone._rule]
+          console.log "Adding Rule: #{zone._rule}"
+          newRules[zone._rule] or= rules[zone._rule]
+        newZones[zoneName] = zoneVals
+
+      rules = newRules
+      zones = newZones
 
     # Output a client side data include file
 
@@ -127,11 +157,47 @@ task 'data', "Build the client side olson data package (defaults to all timezone
       window.WallTime.autoinit = true;\n
 }).call(this);"
 
-    outFile = "./client/walltime-data.js"
+    outFile = opts.outputname
     fs.writeFile outFile, output, (err) ->
       throw err if err
       minifyJSFile outFile, (minFileName) ->
         log "Success!", green, "- Files written to: #{outFile} and #{minFileName}"
+        callback?()
+
+  
+  if opts.olsonfiles
+    olsonFiles.readFrom opts.olsonfiles, processOlsonFiles
+  else
+    olsonFiles.downloadAndRead "./client/olson", processOlsonFiles
+
+task 'data', "Build the client side olson data package (defaults to all timezone files and all zones)", (opts) ->
+  buildDataFile opts
+
+task 'individual', ->
+  olsonFilePath = "./client/olson"
+  slashRegex = new RegExp "\/", "g"
+  spaceRegex = new RegExp " ", "g"
+  olsonFiles.downloadAndRead olsonFilePath, (files) ->
+    fileOpts = []
+    for own fileName, rulesZones of files
+      for own zoneName, zoneVals of rulesZones.zones
+        nameSafe = zoneName.replace(slashRegex, "-").replace(spaceRegex, "_")
+        fileOpts.push
+          olsonfiles: olsonFilePath
+          filename: [fileName]
+          zonename: [zoneName]
+          outputname: "./client/individual/walltime-data[#{nameSafe}].js"
+
+    currFile = 0
+    processFile = () ->
+      if currFile >= fileOpts.length
+        log "All done!", green, "#{currFile+1} files created"
+        return
+
+      buildDataFile fileOpts[currFile++], processFile
+
+    processFile()
+
 
 task 'clean', ->
   removeCompiledFiles ->
