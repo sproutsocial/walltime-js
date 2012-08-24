@@ -181,7 +181,7 @@ task 'individual', ->
     fileOpts = []
     for own fileName, rulesZones of files
       for own zoneName, zoneVals of rulesZones.zones
-        nameSafe = zoneName.replace(slashRegex, "-").replace(spaceRegex, "_")
+        nameSafe = zoneName.replace(slashRegex, "-").replace(spaceRegex, "+")
         fileOpts.push
           olsonfiles: olsonFilePath
           filename: [fileName]

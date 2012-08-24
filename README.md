@@ -38,6 +38,14 @@ To build data for `northamerica` and `europe`
 
     cake -f northamerica -f europe data
 
+To build data for `America/Chicago` only
+
+    cake -f northamerica -z America/Chicago data
+
+To build individual data files for each time zone
+
+    cake individual
+
 By default the files are saved to `./client/walltime.js` etc.
 
 ## Development
