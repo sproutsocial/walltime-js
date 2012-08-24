@@ -1,6 +1,7 @@
 fs            = require 'fs'
 {print}       = require 'util'
 {spawn, exec} = require 'child_process'
+uglifyJS = require "uglify-js"
 clientBuilder = require './client/build'
 olsonFiles = require "./lib/olson"
 
@@ -33,11 +34,32 @@ removeCompiledFiles = (callback) ->
   rm.stderr.pipe process.stderr
   rm.on 'exit', (status) -> callback?()
 
+minifyJSFile = (filePath, callback) ->
+  fs.readFile filePath, "utf-8", (err, contents) ->
+    throw err if err
+
+    jsp = uglifyJS.parser
+    pro = uglifyJS.uglify
+    
+    ast = jsp.parse contents.toString() # parse code and get the initial AST
+    ast = pro.ast_mangle ast # get a new AST with mangled names
+    ast = pro.ast_squeeze ast # get an AST with compression optimizations
+    final_code = pro.gen_code ast # compressed code here
+
+    # Write the file out with a .min.js extension
+    minFileName = filePath.replace ".js", ".min.js"
+    fs.writeFile minFileName, final_code, (ierr) ->
+      throw ierr if ierr
+
+      callback?(minFileName)
+
+
 build = (callback) ->
   compileCoffeeFiles ->
     clientBuilder.build (fileName, fileList) ->
-      removeCompiledFiles ->
-        callback?(fileName, fileList)
+      minifyJSFile fileName, (minFileName) ->
+        removeCompiledFiles ->
+          callback?(fileName, minFileName, fileList)
 
 # mocha test
 test = (callback) ->
@@ -55,9 +77,9 @@ test = (callback) ->
 
 
 task 'build', 'Build the client side walltime.js library', ->
-  build (fileName, list) -> 
+  build (fileName, minFileName, list) -> 
     log "Success!", green
-    log "Output to: #{fileName}"
+    log "Output to: #{fileName} and #{minFileName}"
 
 option "-f", "--filename [OLSON_FILE_NAME*]", "Specify which specific OLSON files to parse"
 
@@ -83,6 +105,7 @@ task 'data', "Build the client side olson data package (defaults to all timezone
     for own fileName, rulesZones of files 
       continue if !allFiles and !filesToProcess[fileName]
       log "Processed File: ", green, fileName
+
       # Add the rules to our existing rules
       for own ruleName, ruleVals of rulesZones.rules
         rules[ruleName] or= []
@@ -90,13 +113,13 @@ task 'data', "Build the client side olson data package (defaults to all timezone
       # Add the zones to our existing zones
       for own zoneName, zoneVals of rulesZones.zones
         zones[zoneName] or= []
-        zones[zoneName].push.apply zones[zoneName], zoneVals
+        zones[zoneName].push.apply zones[zoneName], zoneVals.zones
 
     # Output a client side data include file
 
     # Wrapped in a closure, use existing WallTime object if present, export to WallTime.data
     output = "(function() {\n
-      window.WallTime = window.WallTime || {};\n
+      window.WallTime || (window.WallTime = {});\n
       window.WallTime.data = {\n
         rules: #{JSON.stringify(rules)},\n
         zones: #{JSON.stringify(zones)}\n
@@ -106,7 +129,9 @@ task 'data', "Build the client side olson data package (defaults to all timezone
 
     outFile = "./client/walltime-data.js"
     fs.writeFile outFile, output, (err) ->
-      log "Success!", green, "- File written to: #{outFile}"
+      throw err if err
+      minifyJSFile outFile, (minFileName) ->
+        log "Success!", green, "- Files written to: #{outFile} and #{minFileName}"
 
 task 'clean', ->
   removeCompiledFiles ->
