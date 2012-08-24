@@ -163,7 +163,6 @@ buildDataFile = (opts, callback) ->
       minifyJSFile outFile, (minFileName) ->
         log "Success!", green, "- Files written to: #{outFile} and #{minFileName}"
         callback?()
-
   
   if opts.olsonfiles
     olsonFiles.readFrom opts.olsonfiles, processOlsonFiles
@@ -177,6 +176,7 @@ task 'individual', ->
   olsonFilePath = "./client/olson"
   slashRegex = new RegExp "\/", "g"
   spaceRegex = new RegExp " ", "g"
+  
   olsonFiles.downloadAndRead olsonFilePath, (files) ->
     fileOpts = []
     for own fileName, rulesZones of files
