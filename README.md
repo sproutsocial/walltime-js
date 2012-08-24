@@ -50,6 +50,13 @@ By default the files are saved to `./client/walltime.js` etc.
 
 ## Development
 
+To get setup
+
+    # Clone the repo
+    git clone https://github.com/sproutsocial/walltime-js.git
+    # Install the dependencies
+    npm install
+
 To run tests
 
     cake test
