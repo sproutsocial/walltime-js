@@ -8,8 +8,8 @@ OlsonZone = OlsonCommon.Zone
 OlsonZoneSet = OlsonCommon.ZoneSet
 
 describe "walltime-js", ->
-    rules = []
-    zones = []
+    rules = {}
+    zones = {}
 
     noSave = 
         hours: 0
@@ -26,8 +26,10 @@ describe "walltime-js", ->
             should.exist result?.zones, "should have zones in result"
             should.exist result?.rules, "should have rules in result"
 
-            rules = result.rules
-            zones = result.zones
+            rules = JSON.parse(JSON.stringify(result.rules))
+            # zones = JSON.parse(JSON.stringify(result.zones))
+
+            zones[zoneName] = zoneVal.zones for own zoneName, zoneVal of result.zones
 
             do next
 
@@ -42,8 +44,8 @@ describe "walltime-js", ->
 
             WallTime.init rules, zones
 
-            WallTime.rules.should.equal rules
-            WallTime.zones.should.equal zones
+            should.exist WallTime.rules["US"], "rule"
+            should.exist WallTime.zones["America/Chicago"], "zone"
 
         it "throws an error if you fail to init with rules and zones before setting the time zone", ->
 

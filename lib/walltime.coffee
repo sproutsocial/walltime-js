@@ -9,6 +9,7 @@ init = (rule, zone) ->
             currZone = null
             for own zoneName, zoneVals of zones
                 newZones = []
+                currZone = null
                 for z in zoneVals
                     newZone = new zone.Zone(z.name, z._offset, z._rule, z.format, z._until, currZone)
                     newZones.push newZone
