@@ -18,6 +18,8 @@ init = (helpers) ->
         getMilliseconds: -> @wallTime.getUTCMilliseconds()
         getTime: -> @wallTime.getTime()
 
+        setHours: (h, mi, s, ms) -> @wallTime.setUTCHours(h, mi, s, ms)
+
     TimeZoneTime
 
 if typeof window == 'undefined'
