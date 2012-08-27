@@ -68,7 +68,7 @@ describe "walltime-js", ->
             emptyName = -> WallTime.setTimeZone ""
             emptyName.should.throw()
 
-    describe "UTCToWallTime", ->
+    describe "UTCToWallTime (America/Chicago)", ->
 
         commonWallTimeTest = (point, zoneName, expectSave, expectWallTime) ->
             WallTime.init rules, zones
@@ -183,6 +183,59 @@ describe "walltime-js", ->
             expect = new TimeZoneTime point, { offset: sixOffset }, noSave
 
             commonWallTimeTest point, "America/Chicago", noSave, expect
+
+        it "can translate this years rule before DST", ->
+            # Right before the time zone switch
+            point = helpers.Time.MakeDateFromParts 2012, 2, 11, 1, 59
+            point = helpers.Time.ApplyOffset point, sixOffset
+            
+            expect = new TimeZoneTime point, { offset: sixOffset }, noSave
+
+            commonWallTimeTest point, "America/Chicago", noSave, expect
+
+        it "can translate this years rule after DST on 3/11 at 2:00 AM", ->
+            # Right after the time zone switch
+            point = helpers.Time.MakeDateFromParts 2012, 2, 11, 2, 0
+            point = helpers.Time.ApplyOffset point, sixOffset
+            
+            expect = new TimeZoneTime point, { offset: sixOffset }, dstSave
+
+            commonWallTimeTest point, "America/Chicago", dstSave, expect
+
+        it "can translate this years rule during the middle of DST", ->
+            # Middle of DST
+            point = helpers.Time.MakeDateFromParts 2012, 4, 11, 2, 0
+            point = helpers.Time.ApplyOffset point, sixOffset
+            # Apply a DST because we would have had one applied.
+            point = helpers.Time.ApplySave point, dstSave
+            
+            expect = new TimeZoneTime point, { offset: sixOffset }, dstSave
+
+            commonWallTimeTest point, "America/Chicago", dstSave, expect
+
+        it "can translate this years rule before the switch back to DST", ->
+            # End of DST
+            point = helpers.Time.MakeDateFromParts 2012, 10, 4, 1, 59
+            point = helpers.Time.ApplyOffset point, sixOffset
+            # Apply a DST because we would have had one applied.
+            point = helpers.Time.ApplySave point, dstSave
+            
+            expect = new TimeZoneTime point, { offset: sixOffset }, dstSave
+
+            commonWallTimeTest point, "America/Chicago", dstSave, expect
+
+        it "can translate this years rule after the switch back to DST on 11/4 at 2:00 AM", ->
+            # After DST
+            point = helpers.Time.MakeDateFromParts 2012, 10, 4, 2, 0
+            point = helpers.Time.ApplyOffset point, sixOffset
+            # Apply a DST because we would have had one applied.
+            point = helpers.Time.ApplySave point, dstSave
+            
+            expect = new TimeZoneTime point, { offset: sixOffset }, noSave
+
+            commonWallTimeTest point, "America/Chicago", noSave, expect
+
+
 
 
 
