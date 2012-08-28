@@ -124,8 +124,8 @@ init = (helpers, TimeZoneTime) ->
 
             @atQualifier = if atQualifier != '' then atQualifier else "w"
 
-            @onUTC = helpers.Time.UTCToQualifiedTime @onUTC, @atQualifier, offset, => getPrevSave(@)
-
+            @onUTC = helpers.Time.QualifiedTimeToUTC @onUTC, @atQualifier, offset, => getPrevSave(@)
+            
             @onSort = "#{toMonth}-#{toDay}-#{@onUTC.getUTCHours()}-#{@onUTC.getUTCMinutes()}"     
 
         appliesToUTC: (dt) ->
@@ -151,7 +151,6 @@ init = (helpers, TimeZoneTime) ->
     class RuleSet
         constructor: (@rules, @timeZone) ->
             # Update the rules offsets
-            index = 0
             min = null
             max = null
             endYears = {}
@@ -168,7 +167,6 @@ init = (helpers, TimeZoneTime) ->
                 endYears[rule.to].push rule
                 beginYears[rule.from] = beginYears[rule.from] || []
                 beginYears[rule.from].push rule
-                index++
 
             # Store these for later range checks on rules.
             @minYear = min
@@ -238,6 +236,44 @@ init = (helpers, TimeZoneTime) ->
                 lastSave = appliedRules.slice(-1)[0].save
 
             new TimeZoneTime(dt, @timeZone, lastSave)
+
+        getUTCForWallTime: (dt, offset) ->
+            # All of our rule begins and ends are in UTC time, so try to translate at least by the offset.
+            # TODO: The passed in dt could have a DST applied.
+            utcStd = helpers.Time.StandardTimeToUTC offset, dt
+            rules = (rule for rule in @rules when rule.appliesToUTC utcStd)
+
+            # If no rules apply, return standard time
+            if rules.length < 1
+                return utcStd
+
+            # Sort the rules.
+            rules = @_sortRulesByOnTime rules
+
+            getPrevRuleSave = (r) ->
+                idx = rules.indexOf r
+                # Return no save if this is the first rule (or not found)
+                if idx < 1
+                    return helpers.noSave
+
+                # Return the previous rules save value otherwise
+                rules[idx-1].save
+
+            # Update the onTimes for each of the rules
+            for rule in rules
+                rule.setOnUTC utcStd.getUTCFullYear(), @timeZone.offset, getPrevRuleSave
+
+            # Get rules that applied to us
+            appliedRules = (rule for rule in rules when rule.onUTC.getTime() < utcStd.getTime())
+
+            # Return the standard time if no rules applied.
+            lastSave = helpers.noSave
+            if appliedRules.length > 0
+                # Get the last rule that applied, then use its save time
+                lastSave = appliedRules.slice(-1)[0].save
+
+            helpers.Time.WallTimeToUTC offset, lastSave, dt
+
 
         _sortRulesByOnTime: (rules) ->
             rules.sort (a, b) ->

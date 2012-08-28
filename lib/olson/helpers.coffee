@@ -52,12 +52,12 @@ Time =
         # return the parts
         timeParts
 
-    # Applies a GMT Style Offset.  -5:50:36 would return a new time that is 5 hours, 50 minutes and 36 seconds behind the passed in one
-    # This is used to reconcile a UTC time to standard time, however, if reverse is passed we can convert from GMT Standard time to UTC
+    # Applies a GMT Style Offset.  -5:50:36 would return a new time that is 5 hours, 50 minutes and 36 seconds ahead of the passed in one
+    # This is used to reconcile a standard time to UTC, however, if reverse is passed we can convert from UTC to Standard
     ApplyOffset: (dt, offset, reverse) ->
         offset_ms = (Milliseconds.inHour * offset.hours) + (Milliseconds.inMinute * offset.mins) + (Milliseconds.inSecond * offset.secs)
 
-        offset_ms = offset_ms * -1 if offset.negative
+        offset_ms = offset_ms * -1 if !offset.negative
 
         if reverse
             offset_ms = offset_ms * -1
@@ -65,8 +65,11 @@ Time =
         @MakeDateFromTimeStamp(dt.getTime() + offset_ms)
 
     # Applies a SAVE value by adjusting the time forward by the time passed in.
-    ApplySave: (dt, save) ->
-        @ApplyOffset dt, { negative: false, hours: save.hours, mins: save.mins, secs: 0}
+    ApplySave: (dt, save, reverse) ->
+        if reverse != true
+            reverse = false
+
+        @ApplyOffset dt, { negative: true, hours: save.hours, mins: save.mins, secs: 0}, reverse
 
     UTCToWallTime: (dt, offset, save) ->
         # Apply the gmt offset to the endTime
@@ -79,7 +82,7 @@ Time =
 
     UTCToStandardTime: (dt, offset) ->
         # Apply the gmt offset to the endTime because all our dates are represented with UTC underneath
-        @ApplyOffset dt, offset
+        @ApplyOffset dt, offset, true
 
     UTCToQualifiedTime: (dt, qualifier, offset, getSave) ->
         endTime = dt
@@ -95,10 +98,29 @@ Time =
 
         endTime
 
+    QualifiedTimeToUTC: (dt, qualifier, offset, getSave) ->
+        endTime = dt
+        switch qualifier
+            when "w"
+                # Wall Time, apply gmt offset then daylight savings
+                endTime = @WallTimeToUTC offset, getSave(), endTime
+            when "s"
+                # Standard Time, apply gmt offset only
+                endTime = @StandardTimeToUTC offset, endTime
+            else
+                # already in utc time, so nothing to do.      
+
+        endTime
+
     StandardTimeToUTC: (offset, y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
-        dt = @MakeDateFromParts y, m, d, h, mi, s, ms
+        dt = if typeof y == "number" then @MakeDateFromParts y, m, d, h, mi, s, ms else y
         # Jump up the gmt Offset
         @ApplyOffset dt, offset
+
+    WallTimeToUTC: (offset, save, y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
+        dt = @StandardTimeToUTC offset, y, m, d, h, mi, s, ms
+        # Jump back the save value
+        @ApplySave dt, save, true
 
     # Make a date from the passed in parts
     MakeDateFromParts: (y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
@@ -117,6 +139,9 @@ Time =
 
         # return the date
         dt
+
+    LocalDate: (offset, save, y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
+        @WallTimeToUTC offset, save, y, m, d, h, mi, s, ms
 
     # Make a date from a millisecond timestamp
     MakeDateFromTimeStamp: (ts) ->

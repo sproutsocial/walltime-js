@@ -125,13 +125,12 @@ describe "Olson Rules", ->
                 result.utc.should.equal point, "UTC time"
 
                 expect = point
-                expect = helpers.Time.ApplyOffset expect, result.offset
-                expect = helpers.Time.ApplySave expect, result.save
+                expect = helpers.Time.UTCToWallTime point, result.offset, result.save
 
                 result.wallTime.should.equal expect
 
         it "can tell what rules apply for a given UTC time", ->
-            point = helpers.Time.MakeDateFromParts 1920, 0, 1
+            point = helpers.Time.StandardTimeToUTC chiZone.offset, 1920, 0, 1
 
             result = set.allThatAppliesTo point
 
@@ -153,25 +152,21 @@ describe "Olson Rules", ->
 
         it "can get WallTime for before dst rule takes effect", ->
             # Immediately before the dst rule
-            point = helpers.Time.MakeDateFromParts 1920, 5, 13, 1, 59, 59
-            point = helpers.Time.ApplyOffset point, chiZone.offset
+            point = helpers.Time.StandardTimeToUTC chiZone.offset, 1920, 5, 13, 1, 59, 59
             
             commonWallTimeTest point, chiZone, noSaveState
 
         it "can get WallTime with 1 hour saved for after dst rule", ->
             # Immediately after the daylight savings rule (second of)
-            point = helpers.Time.MakeDateFromParts 1920, 5, 13, 2, 0, 0
-            point = helpers.Time.ApplyOffset point, chiZone.offset
+            point = helpers.Time.StandardTimeToUTC chiZone.offset, 1920, 5, 13, 2, 0, 0
             
             commonWallTimeTest point, chiZone, dstSaveState
 
         it "can get WallTime for right before switching to no dst", ->
 
             # Immediately before the dst rule expires
-            point = helpers.Time.MakeDateFromParts 1920, 9, 31, 1, 59, 59
-            point = helpers.Time.ApplyOffset point, chiZone.offset
-            point = helpers.Time.ApplySave point, dstSaveState
-
+            point = helpers.Time.WallTimeToUTC chiZone.offset, dstSaveState, 1920, 9, 31, 1, 59, 59
+            
             commonWallTimeTest point, chiZone, dstSaveState
 
         it "can get WallTime for after dst expires", ->

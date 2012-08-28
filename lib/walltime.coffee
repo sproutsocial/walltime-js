@@ -1,5 +1,5 @@
 
-init = (rule, zone) ->    
+init = (helpers, rule, zone) ->    
 
     class WallTime
         
@@ -35,6 +35,11 @@ init = (rule, zone) ->
             @zoneSet = new zone.ZoneSet(matches, (ruleName) => @rules[ruleName])
             @timeZoneName = name
 
+        Date: (y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
+            y or= new Date().getUTCFullYear()
+            
+            helpers.Time.MakeDateFromParts y, m, d, h, mi, s, ms
+
         UTCToWallTime: (dt, zoneName = @timeZoneName) ->
             if typeof dt == "number"
                 dt = new Date(dt)
@@ -47,21 +52,31 @@ init = (rule, zone) ->
 
             @zoneSet.getWallTimeForUTC dt
 
+        WallTimeToUTC: (zoneName = @timeZoneName, y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
+            if zoneName != @timeZoneName
+                @setTimeZone zoneName
+
+            wallTime = if typeof y == "number" then helpers.Time.MakeDateFromParts y, m, d, h, mi, s, ms else y
+
+            @zoneSet.getUTCForWallTime wallTime
+
+
     # NOTE: Exporting an instantiated WallTime object.
     new WallTime
 
 if typeof window == 'undefined'
     req_zone = require "./olson/zone"
     req_rule = require "./olson/rule"
-    module.exports = init(req_rule, req_zone)
+    req_help = require "./olson/helpers"
+    module.exports = init(req_help, req_rule, req_zone)
 else if typeof define != 'undefined'
-    define ['olson/rule', 'olson/zone'], init
+    define ['olson/helpers', 'olson/rule', 'olson/zone'], init
 else
     @.WallTime or= {}
 
     # Some trickery here because we want a clean window.WallTime api,
     # But still have to keep the @.WallTime.helpers etc.
-    api = init(@.WallTime.rule, @.WallTime.zone)
+    api = init(@.WallTime.helpers, @.WallTime.rule, @.WallTime.zone)
     for own key,val of @.WallTime
         api[key] = val
 

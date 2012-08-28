@@ -59,6 +59,22 @@ init = (helpers, rule, TimeZoneTime) ->
             rules = new rule.RuleSet((getRulesNamed @_rule), @)
             rules.getWallTimeForUTC dt
 
+        WallTimeToUTC: (dt, getRulesNamed) ->
+            # Standard Time
+            if @_rule == "-" or @_rule == ""
+                # Apply the current offset, but no save.
+                return helpers.Time.StandardTimeToUTC @offset, dt
+
+            # Static Offset
+            if @_rule.indexOf(":") >= 0
+                # Add on the static savings and the offset
+                [hours, mins] = helpers.Time.ParseTime @_rule
+                return helpers.Time.WallTimeToUTC @offset, { hours: hours, mins: mins }, dt
+
+            # Applying a rule, which a rule set will do for us.
+            rules = new rule.RuleSet((getRulesNamed @_rule), @)
+            rules.getUTCForWallTime dt, @offset
+
     class ZoneSet
         constructor: (@zones = [], @getRulesNamed) ->
             
@@ -83,11 +99,17 @@ init = (helpers, rule, TimeZoneTime) ->
             # Add this zone to the current zones
             @zones.push zone
 
-        findApplicable: (dt) ->
+        findApplicable: (dt, useOffset = false) ->
             ts = dt.getTime()
+            findOffsetRange = (zone) ->
+                # TODO: Find if there should be a DST rule applied
+                begin: helpers.Time.UTCToStandardTime zone.range.begin, zone.offset
+                end: helpers.Time.UTCToStandardTime zone.range.end, zone.offset
+
             found = null
             for zone in @zones
-                if zone.range.begin.getTime() <= ts <= zone.range.end.getTime()
+                range = if !useOffset then zone.range else findOffsetRange(zone)
+                if range.begin.getTime() <= ts <= range.end.getTime()
                     found = zone
                     break
 
@@ -99,6 +121,15 @@ init = (helpers, rule, TimeZoneTime) ->
             return new TimeZoneTime(dt, helpers.noZone, helpers.noSave) if not applicable
 
             applicable.UTCToWallTime dt, @getRulesNamed
+
+        getUTCForWallTime: (dt) ->
+            # TODO: We are not accounting for DST rules in the ranges for zones
+            applicable = @findApplicable dt, true
+
+            return new TimeZoneTime(dt, helpers.noZone, helpers.noSave) if not applicable
+
+            applicable.WallTimeToUTC dt, @getRulesNamed
+
 
     lib = 
         Zone: Zone

@@ -68,23 +68,7 @@ describe "walltime-js", ->
             emptyName = -> WallTime.setTimeZone ""
             emptyName.should.throw()
 
-    describe "UTCToWallTime (America/Chicago)", ->
-
-        commonWallTimeTest = (point, zoneName, expectSave, expectWallTime) ->
-            WallTime.init rules, zones
-
-            WallTime.setTimeZone zoneName
-
-            result = WallTime.UTCToWallTime point
-
-            result.save.hours.should.equal expectSave.hours
-            result.save.mins.should.equal expectSave.mins
-
-            result.utc.should.equal point, "UTC time"
-
-            result.wallTime.getTime().should.equal expectWallTime.wallTime.getTime(), "WallTimes: #{result.wallTime.toUTCString()} :: #{expectWallTime.wallTime.toUTCString()}"
-
-        ###
+    ###
     # Rule  NAME    FROM    TO  TYPE    IN  ON  AT  SAVE    LETTER/S
     Rule    US  1918    1919    -   Mar lastSun 2:00    1:00    D
     Rule    US  1918    1919    -   Oct lastSun 2:00    0   S
@@ -119,23 +103,39 @@ describe "walltime-js", ->
                 -6:00   US  C%sT
         ###
 
-        firstOffset = 
-            negative: true
-            hours: 5
-            mins: 50
-            secs: 36
+    firstOffset = 
+        negative: true
+        hours: 5
+        mins: 50
+        secs: 36
 
-        sixOffset = 
-            negative: true
-            hours: 6
-            mins: 0
-            secs: 0
+    sixOffset = 
+        negative: true
+        hours: 6
+        mins: 0
+        secs: 0
 
-        fiveOffset =
-            negative: true
-            hours: 5
-            mins: 0
-            secs: 0
+    fiveOffset =
+        negative: true
+        hours: 5
+        mins: 0
+        secs: 0
+
+    describe "UTCToWallTime (America/Chicago)", ->
+
+        commonWallTimeTest = (point, zoneName, expectSave, expectWallTime) ->
+            WallTime.init rules, zones
+
+            WallTime.setTimeZone zoneName
+
+            result = WallTime.UTCToWallTime point
+
+            result.save.hours.should.equal expectSave.hours
+            result.save.mins.should.equal expectSave.mins
+
+            result.utc.should.equal point, "UTC time"
+
+            result.wallTime.getTime().should.equal expectWallTime.wallTime.getTime(), "WallTimes: #{result.wallTime.toUTCString()} :: #{expectWallTime.wallTime.toUTCString()}"
 
         it "can translate a UTC Time to Chicago Wall Time for times before the first zone line", ->
             # Before any zones
@@ -186,8 +186,11 @@ describe "walltime-js", ->
 
         it "can translate this years rule before DST", ->
             # Right before the time zone switch
-            point = helpers.Time.MakeDateFromParts 2012, 2, 11, 1, 59
-            point = helpers.Time.ApplyOffset point, sixOffset
+            point = helpers.Time.StandardTimeToUTC sixOffset, 2012, 2, 11, 1, 59
+            #console.log point.toUTCString()            
+            
+            #console.log point.toUTCString()
+            point.getUTCHours().should.equal 7
             
             expect = new TimeZoneTime point, { offset: sixOffset }, noSave
 
@@ -215,10 +218,7 @@ describe "walltime-js", ->
 
         it "can translate this years rule before the switch back to DST", ->
             # End of DST
-            point = helpers.Time.MakeDateFromParts 2012, 10, 4, 1, 59
-            point = helpers.Time.ApplyOffset point, sixOffset
-            # Apply a DST because we would have had one applied.
-            point = helpers.Time.ApplySave point, dstSave
+            point = helpers.Time.WallTimeToUTC sixOffset, dstSave, 2012, 10, 4, 1, 59
             
             expect = new TimeZoneTime point, { offset: sixOffset }, dstSave
 
@@ -234,6 +234,72 @@ describe "walltime-js", ->
             expect = new TimeZoneTime point, { offset: sixOffset }, noSave
 
             commonWallTimeTest point, "America/Chicago", noSave, expect
+
+    describe "WallTimeToUTC (America/Chicago)", ->
+
+        commonUTCTimeTest = (point, expect, zoneName = "America/Chicago") ->
+            WallTime.init rules, zones
+
+            WallTime.setTimeZone zoneName
+
+            #console.log point.toUTCString()
+            #console.log "\n"+expect.toUTCString()
+            result = WallTime.WallTimeToUTC zoneName, point
+            #console.log result.toUTCString()
+            
+            result.should.equal expect
+
+        it "can translate wall time before the first zone line to UTC", ->
+            expect = helpers.Time.MakeDateFromParts 1880, 0, 1
+            point = helpers.Time.UTCToStandardTime expect, firstOffset
+
+            commonUTCTimeTest point, expect
+
+        it "can translate wall time at the end of the first zone line", ->
+            expect = helpers.Time.StandardTimeToUTC firstOffset, 1883, 10, 18, 12, 9, 23
+            point = helpers.Time.UTCToStandardTime expect, firstOffset
+
+            commonUTCTimeTest point, expect    
+
+        it "can translate wall time after the end of the first zone line", ->
+            # We are preparing the "point" by using the firstOffset and just adding 2 seconds after the end of the first zone line.
+            expect = helpers.Time.StandardTimeToUTC firstOffset, 1883, 10, 18, 12, 9, 25
+            point = helpers.Time.UTCToStandardTime expect, firstOffset
+
+            # What we actually are expecting should have the sixOffset value
+            expect = helpers.Time.StandardTimeToUTC sixOffset, 1883, 10, 18, 12, 9, 25
+
+            commonUTCTimeTest point, expect          
+
+        it "can translate wall time after the first zone line", ->
+            expect = helpers.Time.MakeDateFromParts 1900, 0, 1
+            point = helpers.Time.UTCToStandardTime expect, sixOffset
+
+            commonUTCTimeTest point, expect
+
+        it "can translate this years wall time before DST", ->
+            expect = helpers.Time.StandardTimeToUTC sixOffset, 2012, 2, 11, 1, 59, 59
+            point = helpers.Time.UTCToStandardTime expect, sixOffset
+
+            commonUTCTimeTest point, expect
+
+        it "can translate this years wall time after DST", ->
+            # Priming without dst save
+            expect = helpers.Time.StandardTimeToUTC sixOffset, 2012, 2, 11, 2
+            point = helpers.Time.UTCToStandardTime expect, sixOffset
+            
+            # What we are expecting should have a dstSave applied.
+            expect = helpers.Time.WallTimeToUTC sixOffset, dstSave, 2012, 2, 11, 2
+            
+            commonUTCTimeTest point, expect
+
+        it "can translate this years wall time during DST", ->
+            # Priming without dst save
+            expect = helpers.Time.StandardTimeToUTC fiveOffset, 2012, 7, 28, 12
+            point = helpers.Time.UTCToStandardTime expect, fiveOffset
+
+            commonUTCTimeTest point, expect
+
 
 
 
