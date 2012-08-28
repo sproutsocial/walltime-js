@@ -73,7 +73,7 @@
     ApplyOffset: function(dt, offset, reverse) {
       var offset_ms;
       offset_ms = (Milliseconds.inHour * offset.hours) + (Milliseconds.inMinute * offset.mins) + (Milliseconds.inSecond * offset.secs);
-      if (offset.negative) {
+      if (!offset.negative) {
         offset_ms = offset_ms * -1;
       }
       if (reverse) {
@@ -81,13 +81,16 @@
       }
       return this.MakeDateFromTimeStamp(dt.getTime() + offset_ms);
     },
-    ApplySave: function(dt, save) {
+    ApplySave: function(dt, save, reverse) {
+      if (reverse !== true) {
+        reverse = false;
+      }
       return this.ApplyOffset(dt, {
-        negative: false,
+        negative: true,
         hours: save.hours,
         mins: save.mins,
         secs: 0
-      });
+      }, reverse);
     },
     UTCToWallTime: function(dt, offset, save) {
       var endTime;
@@ -95,7 +98,7 @@
       return this.ApplySave(endTime, save);
     },
     UTCToStandardTime: function(dt, offset) {
-      return this.ApplyOffset(dt, offset);
+      return this.ApplyOffset(dt, offset, true);
     },
     UTCToQualifiedTime: function(dt, qualifier, offset, getSave) {
       var endTime;
@@ -106,6 +109,19 @@
           break;
         case "s":
           endTime = this.UTCToStandardTime(endTime, offset);
+          break;
+      }
+      return endTime;
+    },
+    QualifiedTimeToUTC: function(dt, qualifier, offset, getSave) {
+      var endTime;
+      endTime = dt;
+      switch (qualifier) {
+        case "w":
+          endTime = this.WallTimeToUTC(offset, getSave(), endTime);
+          break;
+        case "s":
+          endTime = this.StandardTimeToUTC(offset, endTime);
           break;
       }
       return endTime;
@@ -130,8 +146,31 @@
       if (ms == null) {
         ms = 0;
       }
-      dt = this.MakeDateFromParts(y, m, d, h, mi, s, ms);
+      dt = typeof y === "number" ? this.MakeDateFromParts(y, m, d, h, mi, s, ms) : y;
       return this.ApplyOffset(dt, offset);
+    },
+    WallTimeToUTC: function(offset, save, y, m, d, h, mi, s, ms) {
+      var dt;
+      if (m == null) {
+        m = 0;
+      }
+      if (d == null) {
+        d = 1;
+      }
+      if (h == null) {
+        h = 0;
+      }
+      if (mi == null) {
+        mi = 0;
+      }
+      if (s == null) {
+        s = 0;
+      }
+      if (ms == null) {
+        ms = 0;
+      }
+      dt = this.StandardTimeToUTC(offset, y, m, d, h, mi, s, ms);
+      return this.ApplySave(dt, save, true);
     },
     MakeDateFromParts: function(y, m, d, h, mi, s, ms) {
       var dt;
@@ -165,6 +204,27 @@
       dt.setUTCSeconds(s);
       dt.setUTCMilliseconds(ms);
       return dt;
+    },
+    LocalDate: function(offset, save, y, m, d, h, mi, s, ms) {
+      if (m == null) {
+        m = 0;
+      }
+      if (d == null) {
+        d = 1;
+      }
+      if (h == null) {
+        h = 0;
+      }
+      if (mi == null) {
+        mi = 0;
+      }
+      if (s == null) {
+        s = 0;
+      }
+      if (ms == null) {
+        ms = 0;
+      }
+      return this.WallTimeToUTC(offset, save, y, m, d, h, mi, s, ms);
     },
     MakeDateFromTimeStamp: function(ts) {
       return new Date(ts);
@@ -436,7 +496,7 @@
         this.onUTC = helpers.Time.MakeDateFromParts(year, toMonth, toDay, toHour, toMinute);
         this.onUTC.setUTCMilliseconds(this.onUTC.getUTCMilliseconds() - 1);
         this.atQualifier = atQualifier !== '' ? atQualifier : "w";
-        this.onUTC = helpers.Time.UTCToQualifiedTime(this.onUTC, this.atQualifier, offset, function() {
+        this.onUTC = helpers.Time.QualifiedTimeToUTC(this.onUTC, this.atQualifier, offset, function() {
           return getPrevSave(_this);
         });
         return this.onSort = "" + toMonth + "-" + toDay + "-" + (this.onUTC.getUTCHours()) + "-" + (this.onUTC.getUTCMinutes());
@@ -469,11 +529,10 @@
     RuleSet = (function() {
 
       function RuleSet(rules, timeZone) {
-        var beginYears, commonUpdateYearEnds, endYears, index, max, min, rule, _i, _len, _ref,
+        var beginYears, commonUpdateYearEnds, endYears, max, min, rule, _i, _len, _ref,
           _this = this;
         this.rules = rules;
         this.timeZone = timeZone;
-        index = 0;
         min = null;
         max = null;
         endYears = {};
@@ -494,7 +553,6 @@
           endYears[rule.to].push(rule);
           beginYears[rule.from] = beginYears[rule.from] || [];
           beginYears[rule.from].push(rule);
-          index++;
         }
         this.minYear = min;
         this.maxYear = max;
@@ -583,6 +641,55 @@
           lastSave = appliedRules.slice(-1)[0].save;
         }
         return new TimeZoneTime(dt, this.timeZone, lastSave);
+      };
+
+      RuleSet.prototype.getUTCForWallTime = function(dt, offset) {
+        var appliedRules, getPrevRuleSave, lastSave, rule, rules, utcStd, _i, _len;
+        utcStd = helpers.Time.StandardTimeToUTC(offset, dt);
+        rules = (function() {
+          var _i, _len, _ref, _results;
+          _ref = this.rules;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            rule = _ref[_i];
+            if (rule.appliesToUTC(utcStd)) {
+              _results.push(rule);
+            }
+          }
+          return _results;
+        }).call(this);
+        if (rules.length < 1) {
+          return utcStd;
+        }
+        rules = this._sortRulesByOnTime(rules);
+        getPrevRuleSave = function(r) {
+          var idx;
+          idx = rules.indexOf(r);
+          if (idx < 1) {
+            return helpers.noSave;
+          }
+          return rules[idx - 1].save;
+        };
+        for (_i = 0, _len = rules.length; _i < _len; _i++) {
+          rule = rules[_i];
+          rule.setOnUTC(utcStd.getUTCFullYear(), this.timeZone.offset, getPrevRuleSave);
+        }
+        appliedRules = (function() {
+          var _j, _len1, _results;
+          _results = [];
+          for (_j = 0, _len1 = rules.length; _j < _len1; _j++) {
+            rule = rules[_j];
+            if (rule.onUTC.getTime() < utcStd.getTime()) {
+              _results.push(rule);
+            }
+          }
+          return _results;
+        })();
+        lastSave = helpers.noSave;
+        if (appliedRules.length > 0) {
+          lastSave = appliedRules.slice(-1)[0].save;
+        }
+        return helpers.Time.WallTimeToUTC(offset, lastSave, dt);
       };
 
       RuleSet.prototype._sortRulesByOnTime = function(rules) {
@@ -680,6 +787,22 @@
         return rules.getWallTimeForUTC(dt);
       };
 
+      Zone.prototype.WallTimeToUTC = function(dt, getRulesNamed) {
+        var hours, mins, rules, _ref;
+        if (this._rule === "-" || this._rule === "") {
+          return helpers.Time.StandardTimeToUTC(this.offset, dt);
+        }
+        if (this._rule.indexOf(":") >= 0) {
+          _ref = helpers.Time.ParseTime(this._rule), hours = _ref[0], mins = _ref[1];
+          return helpers.Time.WallTimeToUTC(this.offset, {
+            hours: hours,
+            mins: mins
+          }, dt);
+        }
+        rules = new rule.RuleSet(getRulesNamed(this._rule), this);
+        return rules.getUTCForWallTime(dt, this.offset);
+      };
+
       return Zone;
 
     })();
@@ -705,14 +828,24 @@
         return this.zones.push(zone);
       };
 
-      ZoneSet.prototype.findApplicable = function(dt) {
-        var found, ts, zone, _i, _len, _ref;
+      ZoneSet.prototype.findApplicable = function(dt, useOffset) {
+        var findOffsetRange, found, range, ts, zone, _i, _len, _ref;
+        if (useOffset == null) {
+          useOffset = false;
+        }
         ts = dt.getTime();
+        findOffsetRange = function(zone) {
+          return {
+            begin: helpers.Time.UTCToStandardTime(zone.range.begin, zone.offset),
+            end: helpers.Time.UTCToStandardTime(zone.range.end, zone.offset)
+          };
+        };
         found = null;
         _ref = this.zones;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           zone = _ref[_i];
-          if ((zone.range.begin.getTime() <= ts && ts <= zone.range.end.getTime())) {
+          range = !useOffset ? zone.range : findOffsetRange(zone);
+          if ((range.begin.getTime() <= ts && ts <= range.end.getTime())) {
             found = zone;
             break;
           }
@@ -727,6 +860,15 @@
           return new TimeZoneTime(dt, helpers.noZone, helpers.noSave);
         }
         return applicable.UTCToWallTime(dt, this.getRulesNamed);
+      };
+
+      ZoneSet.prototype.getUTCForWallTime = function(dt) {
+        var applicable;
+        applicable = this.findApplicable(dt, true);
+        if (!applicable) {
+          return new TimeZoneTime(dt, helpers.noZone, helpers.noSave);
+        }
+        return applicable.WallTimeToUTC(dt, this.getRulesNamed);
       };
 
       return ZoneSet;
@@ -754,10 +896,10 @@
 
 // Generated by CoffeeScript 1.3.3
 (function() {
-  var api, init, key, req_rule, req_zone, val, _ref, _ref1, _ref2,
+  var api, init, key, req_help, req_rule, req_zone, val, _ref, _ref1, _ref2,
     __hasProp = {}.hasOwnProperty;
 
-  init = function(rule, zone) {
+  init = function(helpers, rule, zone) {
     var WallTime;
     WallTime = (function() {
 
@@ -820,6 +962,29 @@
         return this.timeZoneName = name;
       };
 
+      WallTime.prototype.Date = function(y, m, d, h, mi, s, ms) {
+        if (m == null) {
+          m = 0;
+        }
+        if (d == null) {
+          d = 1;
+        }
+        if (h == null) {
+          h = 0;
+        }
+        if (mi == null) {
+          mi = 0;
+        }
+        if (s == null) {
+          s = 0;
+        }
+        if (ms == null) {
+          ms = 0;
+        }
+        y || (y = new Date().getUTCFullYear());
+        return helpers.Time.MakeDateFromParts(y, m, d, h, mi, s, ms);
+      };
+
       WallTime.prototype.UTCToWallTime = function(dt, zoneName) {
         if (zoneName == null) {
           zoneName = this.timeZoneName;
@@ -836,6 +1001,36 @@
         return this.zoneSet.getWallTimeForUTC(dt);
       };
 
+      WallTime.prototype.WallTimeToUTC = function(zoneName, y, m, d, h, mi, s, ms) {
+        var wallTime;
+        if (zoneName == null) {
+          zoneName = this.timeZoneName;
+        }
+        if (m == null) {
+          m = 0;
+        }
+        if (d == null) {
+          d = 1;
+        }
+        if (h == null) {
+          h = 0;
+        }
+        if (mi == null) {
+          mi = 0;
+        }
+        if (s == null) {
+          s = 0;
+        }
+        if (ms == null) {
+          ms = 0;
+        }
+        if (zoneName !== this.timeZoneName) {
+          this.setTimeZone(zoneName);
+        }
+        wallTime = typeof y === "number" ? helpers.Time.MakeDateFromParts(y, m, d, h, mi, s, ms) : y;
+        return this.zoneSet.getUTCForWallTime(wallTime);
+      };
+
       return WallTime;
 
     })();
@@ -845,12 +1040,13 @@
   if (typeof window === 'undefined') {
     req_zone = require("./olson/zone");
     req_rule = require("./olson/rule");
-    module.exports = init(req_rule, req_zone);
+    req_help = require("./olson/helpers");
+    module.exports = init(req_help, req_rule, req_zone);
   } else if (typeof define !== 'undefined') {
-    define('walltime',['olson/rule', 'olson/zone'], init);
+    define('walltime',['olson/helpers', 'olson/rule', 'olson/zone'], init);
   } else {
     this.WallTime || (this.WallTime = {});
-    api = init(this.WallTime.rule, this.WallTime.zone);
+    api = init(this.WallTime.helpers, this.WallTime.rule, this.WallTime.zone);
     _ref = this.WallTime;
     for (key in _ref) {
       if (!__hasProp.call(_ref, key)) continue;

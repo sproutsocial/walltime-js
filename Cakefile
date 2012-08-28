@@ -119,14 +119,27 @@ buildDataFile = (opts, callback) ->
     zones = {}
     # For each parsed file that we want to build data for
     for own fileName, rulesZones of files when allFiles or filesToProcess[fileName]
+      # Skip the indices if files is an array
+      continue if !isNaN(parseInt(fileName, 10))
+
       # Add the zones to our existing zones
       for own zoneName, zoneVals of rulesZones.zones
         zones[zoneName] or= []
+        # Remove extra fields from zones
+        for z in zoneVals.zones
+          delete z.range
+          delete z.offset
         zones[zoneName].push.apply zones[zoneName], zoneVals.zones
 
       # Add the rules to our existing rules
       for own ruleName, ruleVals of rulesZones.rules
         rules[ruleName] or= []
+        # Remove extra fields from rules
+        for r in ruleVals
+          delete r.from
+          delete r.to
+          delete r.save
+          delete r.isMax
         rules[ruleName].push.apply rules[ruleName], ruleVals
       
       log "Processed File: ", green, fileName
@@ -172,12 +185,12 @@ buildDataFile = (opts, callback) ->
 task 'data', "Build the client side olson data package (defaults to all timezone files and all zones)", (opts) ->
   buildDataFile opts
 
-task 'individual', ->
+task 'individual', (opts) ->
   olsonFilePath = "./client/olson"
   slashRegex = new RegExp "\/", "g"
   spaceRegex = new RegExp " ", "g"
-  
-  olsonFiles.downloadAndRead olsonFilePath, (files) ->
+
+  processFiles = (files) ->
     fileOpts = []
     for own fileName, rulesZones of files
       for own zoneName, zoneVals of rulesZones.zones
@@ -197,6 +210,12 @@ task 'individual', ->
       buildDataFile fileOpts[currFile++], processFile
 
     processFile()
+  
+  if opts.olsonfiles
+    olsonFilePath = opts.olsonfiles
+    olsonFiles.readFrom olsonFilePath, processFiles
+  else
+    olsonFiles.downloadAndRead olsonFilePath, processFiles 
 
 
 task 'clean', ->
