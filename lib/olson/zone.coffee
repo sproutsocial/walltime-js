@@ -35,13 +35,33 @@ init = (helpers, rule, TimeZoneTime) ->
             month = if monthName then helpers.Months.MonthIndex monthName else 0
             day = if day then parseInt(day, 10) else 0
 
-            # TODO: The end time here is standard, but there are situations where it should have a dst applied (australasia)
-
             standardTime = helpers.Time.StandardTimeToUTC @offset, year, month, day, h, mi, s
             # The end time is not inclusive, so back off by 1 millisecond
             endTime = helpers.Time.MakeDateFromTimeStamp(standardTime.getTime() - 1)
 
+            # The end time here is standard, but there are situations where it should have a dst applied (australasia)
+            # We are now accounting for this with updateEndForRules
+
             return endTime
+
+        updateEndForRules: (getRulesNamed) ->
+            # Standard Time
+            if @_rule == "-" or @_rule == ""
+                # No Save
+                return
+
+            # Static Offset
+            if @_rule.indexOf(":") >= 0
+                # Add on the static savings to the end
+                [hours, mins] = helpers.Time.ParseTime @_rule
+                @range.end = helpers.Time.ApplySave @range.end, { hours: hours, mins: mins }
+
+            # Applying a rule, which a rule set will do for us.
+            rules = new rule.RuleSet((getRulesNamed @_rule), @)
+            endSave = rules.getYearEndDST @range.end
+
+            @range.end = helpers.Time.ApplySave @range.end, endSave
+
 
         UTCToWallTime: (dt, getRulesNamed) ->
             # Standard Time
@@ -75,6 +95,44 @@ init = (helpers, rule, TimeZoneTime) ->
             rules = new rule.RuleSet((getRulesNamed @_rule), @)
             rules.getUTCForWallTime dt, @offset
 
+        IsAmbiguous: (dt, getRulesNamed) ->
+            # Standard Time
+            if @_rule == "-" or @_rule == ""
+                # No DST rules / changes in effect, always false
+                return false
+
+            # Static Offset
+            if @_rule.indexOf(":") >= 0
+                utcDt = helpers.Time.StandardTimeToUTC @offset, dt
+
+                # The only time this would be ambiguous is at the beginning or end of the zone
+                [hours, mins] = helpers.Time.ParseTime @_rule
+
+                makeAmbigZone = (begin) ->
+                    ambigZone = 
+                        begin: @range.begin
+                        end: helpers.Time.ApplySave(@range.begin, { hours: hours, mins: mins })
+
+                    if ambigZone.end.getTime() < ambigZone.begin.getTime()
+                        tmp = ambigZone.begin
+                        ambigZone.begin = ambigZone.end
+                        ambigZone.end = tmp
+
+                    ambigZone
+
+                ambigCheck = makeAmbigZone @range.begin
+
+                return true if ambigCheck.begin.getTime() <= utcDt.getTime() < ambigCheck.end.getTime()
+
+                ambigCheck = makeAmbigZone @range.end
+
+                ambigCheck.begin.getTime() <= utcDt.getTime() < ambigCheck.end.getTime()
+
+            # Applying a rule, which a rule set will do for us.
+            rules = new rule.RuleSet((getRulesNamed @_rule), @)
+            rules.isAmbiguous dt, @offset
+
+
     class ZoneSet
         constructor: (@zones = [], @getRulesNamed) ->
             
@@ -85,6 +143,8 @@ init = (helpers, rule, TimeZoneTime) ->
                 @name = ""
 
             # TODO: Does not check for consistent names on load?
+            # TODO: Update the end times by checking for year end DST situations (australasia)
+            zone.updateEndForRules for zone in @zones
 
         # Adds a zone to this sets collection
         add: (zone) ->
@@ -126,9 +186,18 @@ init = (helpers, rule, TimeZoneTime) ->
             # TODO: We are not accounting for DST rules in the ranges for zones
             applicable = @findApplicable dt, true
 
-            return new TimeZoneTime(dt, helpers.noZone, helpers.noSave) if not applicable
+            return dt if not applicable
 
             applicable.WallTimeToUTC dt, @getRulesNamed
+
+        isAmbiguous: (dt) ->
+            # TODO: We are not accounting for DST rules in the ranges for zones
+            # TODO: There could be ambiguities when moving from a static offset to a named rule or no offset.
+            applicable = @findApplicable dt, true
+
+            return false if not applicable
+
+            applicable.IsAmbiguous dt, @getRulesNamed
 
 
     lib = 

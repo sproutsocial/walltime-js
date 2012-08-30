@@ -237,10 +237,10 @@ init = (helpers, TimeZoneTime) ->
 
             new TimeZoneTime(dt, @timeZone, lastSave)
 
-        getUTCForWallTime: (dt, offset) ->
+        getUTCForWallTime: (dt) ->
             # All of our rule begins and ends are in UTC time, so try to translate at least by the offset.
             # TODO: The passed in dt could have a DST applied.
-            utcStd = helpers.Time.StandardTimeToUTC offset, dt
+            utcStd = helpers.Time.StandardTimeToUTC @timeZone.offset, dt
             rules = (rule for rule in @rules when rule.appliesToUTC utcStd)
 
             # If no rules apply, return standard time
@@ -272,8 +272,117 @@ init = (helpers, TimeZoneTime) ->
                 # Get the last rule that applied, then use its save time
                 lastSave = appliedRules.slice(-1)[0].save
 
-            helpers.Time.WallTimeToUTC offset, lastSave, dt
+            helpers.Time.WallTimeToUTC @timeZone.offset, lastSave, dt
 
+        getYearEndDST: (dt) ->
+            year = if typeof dt == number then dt else dt.getUTCFullYear()
+            # Get the last second of the passed in year.
+            utcStd = helpers.Time.StandardTimeToUTC @timeZone.offset, year, 11, 31, 23, 59, 59
+            rules = (rule for rule in @rules when rule.appliesToUTC utcStd)
+
+            # If no rules apply, return no save
+            if rules.length < 1
+                return helpers.noSave
+
+            # Sort the rules.
+            rules = @_sortRulesByOnTime rules
+
+            getPrevRuleSave = (r) ->
+                idx = rules.indexOf r
+                # Return no save if this is the first rule (or not found)
+                if idx < 1
+                    return helpers.noSave
+
+                # Return the previous rules save value otherwise
+                rules[idx-1].save
+
+            # Update the onTimes for each of the rules
+            for rule in rules
+                rule.setOnUTC utcStd.getUTCFullYear(), @timeZone.offset, getPrevRuleSave
+
+            # Get rules that applied to us
+            appliedRules = (rule for rule in rules when rule.onUTC.getTime() < utcStd.getTime())
+
+            # Return no save if no rules applied.
+            lastSave = helpers.noSave
+            if appliedRules.length > 0
+                # Get the last rule that applied, then use its save time
+                lastSave = appliedRules.slice(-1)[0].save
+
+            # Return the lastSave that applied
+            lastSave
+
+        isAmbiguous: (dt) ->
+            # Get the standard version of the wall time that is passed in.
+            utcStd = helpers.Time.StandardTimeToUTC @timeZone.offset, dt
+            rules = (rule for rule in @rules when rule.appliesToUTC utcStd)
+
+            # If no rules apply, return false
+            if rules.length < 1
+                return false
+
+            # Sort the rules.
+            rules = @_sortRulesByOnTime rules
+
+            getPrevRuleSave = (r) ->
+                idx = rules.indexOf r
+                # Return no save if this is the first rule (or not found)
+                if idx < 1
+                    return helpers.noSave
+
+                # Return the previous rules save value otherwise
+                rules[idx-1].save
+
+            # Update the onTimes for each of the rules
+            for rule in rules
+                rule.setOnUTC utcStd.getUTCFullYear(), @timeZone.offset, getPrevRuleSave
+
+            # Get rules that applied to 
+            appliedRules = (rule for rule in rules when rule.onUTC.getTime() <= utcStd.getTime()-1)
+
+            # Return false if no rules applied
+            return false if appliedRules.length < 1
+            
+            # Get the last rule that applied, then check it's end time
+            lastRule = appliedRules.slice(-1)[0]
+            
+            prevSave = getPrevRuleSave lastRule
+            totalMinutes =
+                prev: (prevSave.hours * 60) + prevSave.mins
+                last: (lastRule.save.hours * 60) + lastRule.save.mins
+
+            # There was no change in save, so there can be no ambiguity here.
+            return false if totalMinutes.prev == totalMinutes.last
+
+            # if the previous rule had a dst, and this one doesn't, it's a "fall back"
+            # if the previous rule had no dst and this one does it's a "spring forward"
+            springForward = totalMinutes.prev < totalMinutes.last
+
+            makeAmbigRange = (begin, minutesOff) ->
+                ambigRange = 
+                    begin: helpers.Time.MakeDateFromTimeStamp begin.getTime() + 1
+                    
+                ambigRange.end = helpers.Time.Add ambigRange.begin, 0, minutesOff
+
+                # Since we could have applied a -minutesOff, switch the begin and end if they have swapped.
+                if ambigRange.begin.getTime() > ambigRange.end.getTime()
+                    tmp = ambigRange.begin
+                    ambigRange.begin = ambigRange.end
+                    ambigRange.end = tmp
+
+                ambigRange
+
+            # if we are springing forward, the last rules save should be added to determine the range
+            # if we are falling back, the previous save should be used to set the beginning.
+            minsOff = if springForward then totalMinutes.last else -totalMinutes.prev
+
+            range = makeAmbigRange lastRule.onUTC, minsOff
+
+            # Apply the previous save value to the standard time for fair comparison
+            utcStd = helpers.Time.WallTimeToUTC @timeZone.offset, prevSave, dt
+
+            # Return whether or not we are in the ambiguous range
+            range.begin <= utcStd <= range.end
 
         _sortRulesByOnTime: (rules) ->
             rules.sort (a, b) ->

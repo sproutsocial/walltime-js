@@ -60,6 +60,14 @@ init = (helpers, rule, zone) ->
 
             @zoneSet.getUTCForWallTime wallTime
 
+        IsAmbiguous: (zoneName = @timeZoneName, y, m, d, h, mi = 0) ->
+            if zoneName != @timeZoneName
+                @setTimeZone zoneName
+
+            wallTime = if typeof y == "number" then helpers.Time.MakeDateFromParts y, m, d, h, mi else y
+
+            @zoneSet.isAmbiguous wallTime
+
 
     # NOTE: Exporting an instantiated WallTime object.
     new WallTime

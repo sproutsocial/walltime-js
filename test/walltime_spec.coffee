@@ -300,6 +300,34 @@ describe "walltime-js", ->
 
             commonUTCTimeTest point, expect
 
+    describe "IsAmbiguous (America/Chicago)", ->
+
+        beforeEach ->
+            WallTime.init rules, zones
+
+            WallTime.setTimeZone "America/Chicago"
+
+        it "reports false for before DST", ->
+            result = WallTime.IsAmbiguous "America/Chicago", 2012, 0, 1
+
+            result.should.equal false
+
+        it "reports true for DST transition (2:00 AM, Mar 11, 2012)", ->
+            result = WallTime.IsAmbiguous "America/Chicago", 2012, 2, 11, 2, 0
+
+            result.should.equal true
+
+        it "reports false for before DST reset", ->
+            result = WallTime.IsAmbiguous "America/Chicago", 2012, 5, 1
+
+            result.should.equal false
+
+        it "reports true for DST reset transtion (1:00 AM, Nov 4, 2012)", ->
+            result = WallTime.IsAmbiguous "America/Chicago", 2012, 10, 4, 1
+
+            result.should.equal true
+
+
 
 
 

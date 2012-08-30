@@ -22,6 +22,10 @@ Milliseconds =
 
 # Some helpers for dealing with time values
 Time = 
+    Add: (dt, hours = 0, mins = 0, secs = 0) ->
+        newTs = dt.getTime() + (hours * Milliseconds.inHour) + (mins * Milliseconds.inMinute) + (secs * Milliseconds.inSecond)
+        @MakeDateFromTimeStamp newTs
+
     # Slightly different cases for GMT Strings, so we have them separated out
     # *NOTE*: Seconds will be NaN if they are not present
     ParseGMTOffset: (str) ->
@@ -157,6 +161,7 @@ Time =
 helpers = 
     Days: Days
     Months: Months
+    Milliseconds: Milliseconds
     Time: Time
     noSave:
         hours: 0
