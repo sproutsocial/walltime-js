@@ -31,6 +31,20 @@
   };
 
   Time = {
+    Add: function(dt, hours, mins, secs) {
+      var newTs;
+      if (hours == null) {
+        hours = 0;
+      }
+      if (mins == null) {
+        mins = 0;
+      }
+      if (secs == null) {
+        secs = 0;
+      }
+      newTs = dt.getTime() + (hours * Milliseconds.inHour) + (mins * Milliseconds.inMinute) + (secs * Milliseconds.inSecond);
+      return this.MakeDateFromTimeStamp(newTs);
+    },
     ParseGMTOffset: function(str) {
       var isNeg, match, matches, reg, result;
       reg = new RegExp("(-)?([0-9]*):([0-9]*):?([0-9]*)?");
@@ -240,6 +254,7 @@
   helpers = {
     Days: Days,
     Months: Months,
+    Milliseconds: Milliseconds,
     Time: Time,
     noSave: {
       hours: 0,
@@ -317,6 +332,13 @@
 
       TimeZoneTime.prototype.getTime = function() {
         return this.wallTime.getTime();
+      };
+
+      TimeZoneTime.prototype.toDateString = function() {
+        var caps, utcStr;
+        utcStr = this.wallTime.toUTCString();
+        caps = utcStr.match("([a-zA-Z]*), ([0-9]+) ([a-zA-Z]*) ([0-9]+)");
+        return [caps[1], caps[3], caps[2], caps[4]].join(" ");
       };
 
       TimeZoneTime.prototype.setHours = function(h, mi, s, ms) {
@@ -643,9 +665,9 @@
         return new TimeZoneTime(dt, this.timeZone, lastSave);
       };
 
-      RuleSet.prototype.getUTCForWallTime = function(dt, offset) {
+      RuleSet.prototype.getUTCForWallTime = function(dt) {
         var appliedRules, getPrevRuleSave, lastSave, rule, rules, utcStd, _i, _len;
-        utcStd = helpers.Time.StandardTimeToUTC(offset, dt);
+        utcStd = helpers.Time.StandardTimeToUTC(this.timeZone.offset, dt);
         rules = (function() {
           var _i, _len, _ref, _results;
           _ref = this.rules;
@@ -689,7 +711,131 @@
         if (appliedRules.length > 0) {
           lastSave = appliedRules.slice(-1)[0].save;
         }
-        return helpers.Time.WallTimeToUTC(offset, lastSave, dt);
+        return helpers.Time.WallTimeToUTC(this.timeZone.offset, lastSave, dt);
+      };
+
+      RuleSet.prototype.getYearEndDST = function(dt) {
+        var appliedRules, getPrevRuleSave, lastSave, rule, rules, utcStd, year, _i, _len;
+        year = typeof dt === number ? dt : dt.getUTCFullYear();
+        utcStd = helpers.Time.StandardTimeToUTC(this.timeZone.offset, year, 11, 31, 23, 59, 59);
+        rules = (function() {
+          var _i, _len, _ref, _results;
+          _ref = this.rules;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            rule = _ref[_i];
+            if (rule.appliesToUTC(utcStd)) {
+              _results.push(rule);
+            }
+          }
+          return _results;
+        }).call(this);
+        if (rules.length < 1) {
+          return helpers.noSave;
+        }
+        rules = this._sortRulesByOnTime(rules);
+        getPrevRuleSave = function(r) {
+          var idx;
+          idx = rules.indexOf(r);
+          if (idx < 1) {
+            return helpers.noSave;
+          }
+          return rules[idx - 1].save;
+        };
+        for (_i = 0, _len = rules.length; _i < _len; _i++) {
+          rule = rules[_i];
+          rule.setOnUTC(utcStd.getUTCFullYear(), this.timeZone.offset, getPrevRuleSave);
+        }
+        appliedRules = (function() {
+          var _j, _len1, _results;
+          _results = [];
+          for (_j = 0, _len1 = rules.length; _j < _len1; _j++) {
+            rule = rules[_j];
+            if (rule.onUTC.getTime() < utcStd.getTime()) {
+              _results.push(rule);
+            }
+          }
+          return _results;
+        })();
+        lastSave = helpers.noSave;
+        if (appliedRules.length > 0) {
+          lastSave = appliedRules.slice(-1)[0].save;
+        }
+        return lastSave;
+      };
+
+      RuleSet.prototype.isAmbiguous = function(dt) {
+        var appliedRules, getPrevRuleSave, lastRule, makeAmbigRange, minsOff, prevSave, range, rule, rules, springForward, totalMinutes, utcStd, _i, _len;
+        utcStd = helpers.Time.StandardTimeToUTC(this.timeZone.offset, dt);
+        rules = (function() {
+          var _i, _len, _ref, _results;
+          _ref = this.rules;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            rule = _ref[_i];
+            if (rule.appliesToUTC(utcStd)) {
+              _results.push(rule);
+            }
+          }
+          return _results;
+        }).call(this);
+        if (rules.length < 1) {
+          return false;
+        }
+        rules = this._sortRulesByOnTime(rules);
+        getPrevRuleSave = function(r) {
+          var idx;
+          idx = rules.indexOf(r);
+          if (idx < 1) {
+            return helpers.noSave;
+          }
+          return rules[idx - 1].save;
+        };
+        for (_i = 0, _len = rules.length; _i < _len; _i++) {
+          rule = rules[_i];
+          rule.setOnUTC(utcStd.getUTCFullYear(), this.timeZone.offset, getPrevRuleSave);
+        }
+        appliedRules = (function() {
+          var _j, _len1, _results;
+          _results = [];
+          for (_j = 0, _len1 = rules.length; _j < _len1; _j++) {
+            rule = rules[_j];
+            if (rule.onUTC.getTime() <= utcStd.getTime() - 1) {
+              _results.push(rule);
+            }
+          }
+          return _results;
+        })();
+        if (appliedRules.length < 1) {
+          return false;
+        }
+        lastRule = appliedRules.slice(-1)[0];
+        prevSave = getPrevRuleSave(lastRule);
+        totalMinutes = {
+          prev: (prevSave.hours * 60) + prevSave.mins,
+          last: (lastRule.save.hours * 60) + lastRule.save.mins
+        };
+        if (totalMinutes.prev === totalMinutes.last) {
+          return false;
+        }
+        springForward = totalMinutes.prev < totalMinutes.last;
+        makeAmbigRange = function(begin, minutesOff) {
+          var ambigRange, tmp;
+          ambigRange = {
+            begin: helpers.Time.MakeDateFromTimeStamp(begin.getTime() + 1)
+          };
+          ambigRange.end = helpers.Time.Add(ambigRange.begin, 0, minutesOff);
+          if (ambigRange.begin.getTime() > ambigRange.end.getTime()) {
+            tmp = ambigRange.begin;
+            ambigRange.begin = ambigRange.end;
+            ambigRange.end = tmp;
+          }
+          return ambigRange;
+        };
+        minsOff = springForward ? totalMinutes.last : -totalMinutes.prev;
+        range = makeAmbigRange(lastRule.onUTC, minsOff);
+        utcStd = helpers.Time.WallTimeToUTC(this.timeZone.offset, prevSave, dt);
+        return (range.begin <= utcStd && utcStd <= range.end);
       };
 
       RuleSet.prototype._sortRulesByOnTime = function(rules) {
@@ -771,6 +917,23 @@
         return endTime;
       };
 
+      Zone.prototype.updateEndForRules = function(getRulesNamed) {
+        var endSave, hours, mins, rules, _ref;
+        if (this._rule === "-" || this._rule === "") {
+          return;
+        }
+        if (this._rule.indexOf(":") >= 0) {
+          _ref = helpers.Time.ParseTime(this._rule), hours = _ref[0], mins = _ref[1];
+          this.range.end = helpers.Time.ApplySave(this.range.end, {
+            hours: hours,
+            mins: mins
+          });
+        }
+        rules = new rule.RuleSet(getRulesNamed(this._rule), this);
+        endSave = rules.getYearEndDST(this.range.end);
+        return this.range.end = helpers.Time.ApplySave(this.range.end, endSave);
+      };
+
       Zone.prototype.UTCToWallTime = function(dt, getRulesNamed) {
         var hours, mins, rules, _ref;
         if (this._rule === "-" || this._rule === "") {
@@ -803,18 +966,59 @@
         return rules.getUTCForWallTime(dt, this.offset);
       };
 
+      Zone.prototype.IsAmbiguous = function(dt, getRulesNamed) {
+        var ambigCheck, hours, makeAmbigZone, mins, rules, utcDt, _ref, _ref1, _ref2;
+        if (this._rule === "-" || this._rule === "") {
+          return false;
+        }
+        if (this._rule.indexOf(":") >= 0) {
+          utcDt = helpers.Time.StandardTimeToUTC(this.offset, dt);
+          _ref = helpers.Time.ParseTime(this._rule), hours = _ref[0], mins = _ref[1];
+          makeAmbigZone = function(begin) {
+            var ambigZone, tmp;
+            ambigZone = {
+              begin: this.range.begin,
+              end: helpers.Time.ApplySave(this.range.begin, {
+                hours: hours,
+                mins: mins
+              })
+            };
+            if (ambigZone.end.getTime() < ambigZone.begin.getTime()) {
+              tmp = ambigZone.begin;
+              ambigZone.begin = ambigZone.end;
+              ambigZone.end = tmp;
+            }
+            return ambigZone;
+          };
+          ambigCheck = makeAmbigZone(this.range.begin);
+          if ((ambigCheck.begin.getTime() <= (_ref1 = utcDt.getTime()) && _ref1 < ambigCheck.end.getTime())) {
+            return true;
+          }
+          ambigCheck = makeAmbigZone(this.range.end);
+          (ambigCheck.begin.getTime() <= (_ref2 = utcDt.getTime()) && _ref2 < ambigCheck.end.getTime());
+        }
+        rules = new rule.RuleSet(getRulesNamed(this._rule), this);
+        return rules.isAmbiguous(dt, this.offset);
+      };
+
       return Zone;
 
     })();
     ZoneSet = (function() {
 
       function ZoneSet(zones, getRulesNamed) {
+        var zone, _i, _len, _ref;
         this.zones = zones != null ? zones : [];
         this.getRulesNamed = getRulesNamed;
         if (this.zones.length > 0) {
           this.name = this.zones[0].name;
         } else {
           this.name = "";
+        }
+        _ref = this.zones;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          zone = _ref[_i];
+          zone.updateEndForRules;
         }
       }
 
@@ -866,9 +1070,18 @@
         var applicable;
         applicable = this.findApplicable(dt, true);
         if (!applicable) {
-          return new TimeZoneTime(dt, helpers.noZone, helpers.noSave);
+          return dt;
         }
         return applicable.WallTimeToUTC(dt, this.getRulesNamed);
+      };
+
+      ZoneSet.prototype.isAmbiguous = function(dt) {
+        var applicable;
+        applicable = this.findApplicable(dt, true);
+        if (!applicable) {
+          return false;
+        }
+        return applicable.IsAmbiguous(dt, this.getRulesNamed);
       };
 
       return ZoneSet;
@@ -1029,6 +1242,21 @@
         }
         wallTime = typeof y === "number" ? helpers.Time.MakeDateFromParts(y, m, d, h, mi, s, ms) : y;
         return this.zoneSet.getUTCForWallTime(wallTime);
+      };
+
+      WallTime.prototype.IsAmbiguous = function(zoneName, y, m, d, h, mi) {
+        var wallTime;
+        if (zoneName == null) {
+          zoneName = this.timeZoneName;
+        }
+        if (mi == null) {
+          mi = 0;
+        }
+        if (zoneName !== this.timeZoneName) {
+          this.setTimeZone(zoneName);
+        }
+        wallTime = typeof y === "number" ? helpers.Time.MakeDateFromParts(y, m, d, h, mi) : y;
+        return this.zoneSet.isAmbiguous(wallTime);
       };
 
       return WallTime;

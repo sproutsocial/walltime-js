@@ -18,6 +18,11 @@ init = (helpers) ->
         getMilliseconds: -> @wallTime.getUTCMilliseconds()
         getTime: -> @wallTime.getTime()
 
+        toDateString: ->
+            utcStr = @wallTime.toUTCString()
+            caps = utcStr.match "([a-zA-Z]*), ([0-9]+) ([a-zA-Z]*) ([0-9]+)"
+            [caps[1], caps[3], caps[2], caps[4]].join " "
+
         setHours: (h, mi, s, ms) -> @wallTime.setUTCHours(h, mi, s, ms)
 
     TimeZoneTime
