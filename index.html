@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Walltime-js by sproutsocial</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>Walltime-js</h1>
+        <p>A Javascript library for easily translating a UTC time to a &quot;Wall Time&quot; for a particular time zone.</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/sproutsocial/walltime-js" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/sproutsocial/walltime-js/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/sproutsocial/walltime-js/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h2>Problems this solves</h2>
+
+<p>Dates in javascript do not properly account for daylight savings time for other regions than your own browser configured time zone.</p>
+
+<p>For example:</p>
+
+<ul>
+<li>Your API sends UTC times in JSON but you need to display them for Chicago time zone to a user viewing your page in Los Angeles.</li>
+<li>What was the UTC Time on May 24, 1844 at 9:00 AM in Baltimore, Maryland?</li>
+</ul><h2>Usage</h2>
+
+<pre><code>&lt;script src="/path/to/walltime-data.js"&gt;&lt;/script&gt;
+&lt;script src="/path/to/walltime.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript"&gt;
+    var someUTCDate = new Date(new Date().getTime()),
+        chicagoWallTime = WallTime.UTCToWallTime(someUTCDate, "America/Chicago");
+&lt;/script&gt;
+</code></pre>
+
+<h2>Building Data</h2>
+
+<p>To limit the size of WallTime.js you should only use the data for the time zone files you need.  </p>
+
+<p>By default, <code>walltime-data.js</code> contains <code>northamerica</code>, <code>europe</code> and <code>australasia</code> which encompass most of the world but is 479k (minified).  By narrowing it down to just <code>northamerica</code> you could save 300k, adding gzip compression could get you down as low as 16k.</p>
+
+<p>This project uses <a href="http://nodejs.org">node js</a> and <a href="http://coffeescript.org">CoffeeScript</a>; go and install them if you don't have them.</p>
+
+<p>To build all the data for all the time zone files</p>
+
+<pre><code>cake data
+</code></pre>
+
+<p>To build data for <code>northamerica</code> only</p>
+
+<pre><code>cake -f northamerica data
+</code></pre>
+
+<p>To build data for <code>northamerica</code> and <code>europe</code></p>
+
+<pre><code>cake -f northamerica -f europe data
+</code></pre>
+
+<p>To build data for <code>America/Chicago</code> only</p>
+
+<pre><code>cake -f northamerica -z America/Chicago data
+</code></pre>
+
+<p>To build individual data files for each time zone</p>
+
+<pre><code>cake individual
+</code></pre>
+
+<p>By default the files are saved to <code>./client/walltime.js</code> etc.</p>
+
+<h2>Development</h2>
+
+<p>To get setup</p>
+
+<pre><code># Clone the repo
+git clone https://github.com/sproutsocial/walltime-js.git
+# Install the dependencies
+npm install
+</code></pre>
+
+<p>To run tests</p>
+
+<pre><code>cake test
+</code></pre>
+
+<p>To make new tests create a new spec coffee file in the test directory.</p>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/sproutsocial">sproutsocial</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
