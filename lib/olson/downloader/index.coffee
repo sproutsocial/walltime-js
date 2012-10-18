@@ -7,7 +7,8 @@ exec = (require "child_process").exec
 class WGetDownloader
     # Run WGet to download files from FTP
     _downloadFiles: (filePath, next) ->
-        console.log("wget --retr-symlinks -O '#{filePath}/tzdata-latest.tar.gz' 'ftp://ftp.iana.org/tz/tzdata-latest.tar.gz'");
+
+        log "Downloading TzDb -> wget --retr-symlinks -O '#{filePath}/tzdata-latest.tar.gz' 'ftp://ftp.iana.org/tz/tzdata-latest.tar.gz'", bold;
         exec "wget --retr-symlinks -O '#{filePath}/tzdata-latest.tar.gz' 'ftp://ftp.iana.org/tz/tzdata-latest.tar.gz'", (err, out, stdErr) ->
             throw Error err if err
             do next
