@@ -12,6 +12,7 @@ logs
 results
 
 client/olson
+client/individual/*.js
 
 node_modules
 npm-debug.log
