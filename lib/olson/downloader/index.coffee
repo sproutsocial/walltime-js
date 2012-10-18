@@ -2,6 +2,14 @@ fs = require "fs"
 path = require "path"
 exec = (require "child_process").exec
 
+# ANSI Terminal Colors
+bold  = '\x1B[0;1m'
+red   = '\x1B[0;31m'
+green = '\x1B[0;32m'
+reset = '\x1B[0m'
+
+log = (message, color = green, explanation = '') ->
+  console.log color + message + reset + ' ' + explanation
 
 # The WGetDownloader will execute a series of shell commands to download and extract timezone files to a specific directory.
 class WGetDownloader
