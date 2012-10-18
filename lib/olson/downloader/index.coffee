@@ -37,7 +37,9 @@ class WGetDownloader
                 throw err if err
                 fs.unlink "#{filePath}/yearistype.sh", (err) ->
                     throw err if err
-                    do next
+                    fs.unlink "#{filePath}/Makefile", (err) ->
+                        throw err if err
+                        do next
 
 
     # Start the downloading process to the specified directory.  
