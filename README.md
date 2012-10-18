@@ -23,6 +23,9 @@ For example:
 
 ## Building Data
 
+### Requirements
+`wget` : Easiest for Mac to use `brew install wget`
+
 To limit the size of WallTime.js you should only use the data for the time zone files you need.  
 
 By default, `walltime-data.js` contains `northamerica`, `europe` and `australasia` which encompass most of the world but is 479k (minified).  By narrowing it down to just `northamerica` you could save 300k, adding gzip compression could get you down as low as 16k.
