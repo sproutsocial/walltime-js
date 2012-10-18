@@ -5,9 +5,12 @@ A javascript library for easily translating a UTC time to a "Wall Time" for a pa
 
 ## Problems this solves
 
-Dates in javascript do not properly account for daylight savings time for regions that use them.
+Dates in javascript do not properly account for daylight savings time for other regions than your own browser configured time zone.
 
-walltime-js helps with translating a UTC time to a "Wall Time" for a particular time zone.
+For example:
+
+- Your API sends UTC times in JSON but you need to display them for Chicago time zone to a user viewing your page in Los Angeles.
+- What was the UTC Time on May 24, 1844 at 9:00 AM in Baltimore, Maryland?
 
 ## Usage
 
@@ -19,6 +22,9 @@ walltime-js helps with translating a UTC time to a "Wall Time" for a particular 
     </script>
 
 ## Building Data
+
+### Requirements
+`wget` : Easiest for Mac to use `brew install wget`
 
 To limit the size of WallTime.js you should only use the data for the time zone files you need.  
 
