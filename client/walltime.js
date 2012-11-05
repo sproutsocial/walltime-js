@@ -342,7 +342,7 @@
       };
 
       TimeZoneTime.prototype.getTime = function() {
-        return this.wallTime.getTime();
+        return this.utc.getTime();
       };
 
       TimeZoneTime.prototype.toDateString = function() {

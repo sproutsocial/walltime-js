@@ -2,12 +2,21 @@ fs = require "fs"
 path = require "path"
 exec = (require "child_process").exec
 
+# ANSI Terminal Colors
+bold  = '\x1B[0;1m'
+red   = '\x1B[0;31m'
+green = '\x1B[0;32m'
+reset = '\x1B[0m'
+
+log = (message, color = green, explanation = '') ->
+  console.log color + message + reset + ' ' + explanation
 
 # The WGetDownloader will execute a series of shell commands to download and extract timezone files to a specific directory.
 class WGetDownloader
     # Run WGet to download files from FTP
     _downloadFiles: (filePath, next) ->
-        console.log("wget --retr-symlinks -O '#{filePath}/tzdata-latest.tar.gz' 'ftp://ftp.iana.org/tz/tzdata-latest.tar.gz'");
+
+        log "Downloading TzDb -> wget --retr-symlinks -O '#{filePath}/tzdata-latest.tar.gz' 'ftp://ftp.iana.org/tz/tzdata-latest.tar.gz'", bold;
         exec "wget --retr-symlinks -O '#{filePath}/tzdata-latest.tar.gz' 'ftp://ftp.iana.org/tz/tzdata-latest.tar.gz'", (err, out, stdErr) ->
             throw Error err if err
             do next
