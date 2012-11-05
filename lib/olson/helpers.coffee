@@ -1,3 +1,10 @@
+
+# A shim for IE8+9 Array.indexOf
+Array::indexOf or= (item) ->
+  for x, i in this
+    return i if x is item
+  return -1
+
 # Some helpers for going between day names and indices.
 Days = 
     DayShortNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -12,6 +19,9 @@ Days =
 Months = 
     MonthsShortNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     MonthIndex: (shortName) ->
+
+
+
         @MonthsShortNames.indexOf shortName.slice(0, 3)
 
 Milliseconds = 
