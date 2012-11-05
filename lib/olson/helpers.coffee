@@ -19,9 +19,6 @@ Days =
 Months = 
     MonthsShortNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     MonthIndex: (shortName) ->
-
-
-
         @MonthsShortNames.indexOf shortName.slice(0, 3)
 
 Milliseconds = 
