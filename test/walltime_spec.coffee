@@ -19,10 +19,10 @@ describe "walltime-js", ->
         hours: 1
         mins: 0
 
-    before (next) ->
+    readTimezoneFile = (file = "./test/rsrc/full/northamerica", next) ->
         reader = new OlsonReader
 
-        reader.singleFile "./test/rsrc/full/northamerica", (result) ->
+        reader.singleFile file, (result) ->
             should.exist result?.zones, "should have zones in result"
             should.exist result?.rules, "should have rules in result"
 
@@ -39,6 +39,9 @@ describe "walltime-js", ->
         WallTime.doneInit = false
 
     describe "init", ->
+        before (next) ->
+            readTimezoneFile "./test/rsrc/full/northamerica", next
+
         it "requires an init call to load the rules and zones", ->
             should.exist WallTime.init
 
@@ -53,6 +56,9 @@ describe "walltime-js", ->
             setTimeZoneWithNoInit.should.throw()
 
     describe "setTimeZone", ->
+        before (next) ->
+            readTimezoneFile "./test/rsrc/full/northamerica", next
+
         it "allows you to set the time zone", ->
             should.exist WallTime.setTimeZone
 
@@ -121,21 +127,23 @@ describe "walltime-js", ->
         mins: 0
         secs: 0
 
+    commonWallTimeTest = (point, zoneName, expectSave, expectWallTime) ->
+        WallTime.init rules, zones
+
+        WallTime.setTimeZone zoneName
+
+        result = WallTime.UTCToWallTime point
+
+        result.save.hours.should.equal expectSave.hours
+        result.save.mins.should.equal expectSave.mins
+
+        result.utc.should.equal point, "UTC time"
+
+        result.wallTime.getTime().should.equal expectWallTime.wallTime.getTime(), "WallTimes: #{result.wallTime.toUTCString()} :: #{expectWallTime.wallTime.toUTCString()}"
+
     describe "UTCToWallTime (America/Chicago)", ->
-
-        commonWallTimeTest = (point, zoneName, expectSave, expectWallTime) ->
-            WallTime.init rules, zones
-
-            WallTime.setTimeZone zoneName
-
-            result = WallTime.UTCToWallTime point
-
-            result.save.hours.should.equal expectSave.hours
-            result.save.mins.should.equal expectSave.mins
-
-            result.utc.should.equal point, "UTC time"
-
-            result.wallTime.getTime().should.equal expectWallTime.wallTime.getTime(), "WallTimes: #{result.wallTime.toUTCString()} :: #{expectWallTime.wallTime.toUTCString()}"
+        before (next) ->
+            readTimezoneFile "./test/rsrc/full/northamerica", next
 
         it "can translate a UTC Time to Chicago Wall Time for times before the first zone line", ->
             # Before any zones
@@ -236,6 +244,8 @@ describe "walltime-js", ->
             commonWallTimeTest point, "America/Chicago", noSave, expect
 
     describe "WallTimeToUTC (America/Chicago)", ->
+        before (next) ->
+            readTimezoneFile "./test/rsrc/full/northamerica", next
 
         commonUTCTimeTest = (point, expect, zoneName = "America/Chicago") ->
             WallTime.init rules, zones
@@ -301,6 +311,8 @@ describe "walltime-js", ->
             commonUTCTimeTest point, expect
 
     describe "IsAmbiguous (America/Chicago)", ->
+        before (next) ->
+            readTimezoneFile "./test/rsrc/full/northamerica", next
 
         beforeEach ->
             WallTime.init rules, zones
@@ -326,6 +338,62 @@ describe "walltime-js", ->
             result = WallTime.IsAmbiguous "America/Chicago", 2012, 10, 4, 1
 
             result.should.equal true
+
+    describe "UTCToWallTime (Australia/Adelaide)", ->
+        ###
+        Daylight savings in Australia/Adelaide is generally opposite of the united states.
+
+        GMT Offset is +9:30.  
+
+        Enter Daylight savings (Spring Forward) on October 7, 2012 3:00 AM -> 2:00 AM
+        Leave Daylights savings (Fall Back) on April 1, 2012 2:00 AM -> 3:00 AM
+        ###
+
+        Mar28_8AM_2012 = 1332883800000
+        Apr3_8AM_2012 = 1333405800000
+        Sep28_8AM_2012 = 1348785000000
+        Oct10_8AM_2012 = 1349818200000
+        Jan4_8AM_2013 = 1357248600000
+
+        testTimestamp = (ts, yr, month, day, hr, min) ->
+            result = WallTime.UTCToWallTime ts
+
+            result.getFullYear().should.equal yr, "Year"
+            result.getMonth().should.equal month, "Month"
+            result.getDate().should.equal day, "Day"
+            result.getHours().should.equal hr, "Hour"
+            result.getMinutes().should.equal min, "Minute"
+
+        before (next) ->
+            readTimezoneFile "./test/rsrc/full/australasia", next
+
+        beforeEach ->
+            WallTime.init rules, zones
+
+            WallTime.setTimeZone "Australia/Adelaide"
+
+        # Before the DST Transition
+        it "can translate March 28 2012, 8:00 AM correctly", ->
+            testTimestamp Mar28_8AM_2012, 2012, 2, 28, 8, 0
+
+        # After the DST Transition
+        it "can translate April 3 2012, 8:00 AM correctly", ->
+            testTimestamp Apr3_8AM_2012, 2012, 3, 3, 8, 0
+
+        # During the DST Transition
+        it "can translate September 28 2012, 8:00 AM correctly", ->
+            testTimestamp Sep28_8AM_2012, 2012, 8, 28, 8, 0
+
+        # After the DST Regression
+        it "can translate October 10 2012, 8:00 AM correctly", ->
+            testTimestamp Oct10_8AM_2012, 2012, 9, 10, 8, 0
+
+        # After the DST Regression beginning of year
+        it "can translate January 4 2013, 8:00 AM correctly", ->
+            testTimestamp Jan4_8AM_2013, 2013, 0, 4, 8, 0
+
+        
+
 
 
 

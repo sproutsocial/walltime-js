@@ -7,5 +7,5 @@ describe "Project Roadmap", ->
     it "can convert a UTC TimeStamp to a Wall Time for America/Chicago during daylight savings time", -> true
     it "can convert a Wall Time for America/Chicago during daylight savings time to a UTC TimeStamp", -> true
     it "can detect when a given Wall Time is ambiguous", -> true
-    it "works properly for zones where the year starts with a DST applied (australasia)"
+    it "works properly for zones where the year starts with a DST applied (australasia)", -> true
     it "can build a client side script version", -> true

@@ -215,9 +215,14 @@ init = (helpers, TimeZoneTime) ->
 
             getPrevRuleSave = (r) ->
                 idx = rules.indexOf r
-                # Return no save if this is the first rule (or not found)
+                # Return begin of year save if this is the first rule (or not found)
                 if idx < 1
-                    return helpers.noSave
+                    if rules.length < 1
+                        return helpers.noSave
+
+                    # TODO: We are cheating here by choosing the last rule for the current year,
+                    # we should have to check the previous years last rule.
+                    return rules.slice(-1)[0].save
 
                 # Return the previous rules save value otherwise
                 rules[idx-1].save
@@ -229,8 +234,9 @@ init = (helpers, TimeZoneTime) ->
             # Get rules that applied to us
             appliedRules = (rule for rule in rules when rule.onUTC.getTime() < dt.getTime())
 
-            # Return the standard time if no rules applied.
-            lastSave = helpers.noSave
+            # TODO: We are cheating here by choosing the last rule for the current year,
+            # we should have to check the previous years last rule.
+            lastSave = if rules.length < 1 then helpers.noSave else rules.slice(-1)[0].save
             if appliedRules.length > 0
                 # Get the last rule that applied, then use its save time
                 lastSave = appliedRules.slice(-1)[0].save
