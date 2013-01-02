@@ -702,7 +702,10 @@
           var idx;
           idx = rules.indexOf(r);
           if (idx < 1) {
-            return helpers.noSave;
+            if (rules.length < 1) {
+              return helpers.noSave;
+            }
+            return rules.slice(-1)[0].save;
           }
           return rules[idx - 1].save;
         };
@@ -721,7 +724,7 @@
           }
           return _results;
         })();
-        lastSave = helpers.noSave;
+        lastSave = rules.length < 1 ? helpers.noSave : rules.slice(-1)[0].save;
         if (appliedRules.length > 0) {
           lastSave = appliedRules.slice(-1)[0].save;
         }
