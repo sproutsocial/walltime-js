@@ -95,7 +95,7 @@ buildDataFile = (opts, callback) ->
   filesToProcess = {}
   if opts.filename.length != 0
     allFiles = false
-    # Set a lookup of what file names where passed in from the options
+    # Set a lookup of what file names were passed in from the options
     filesToProcess[name] = true for name in opts.filename
 
     log "Processing: " + opts.filename.join(",")
