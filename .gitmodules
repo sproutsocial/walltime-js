@@ -1,0 +1,3 @@
+[submodule "client/olson"]
+	path = client/olson
+	url = git://github.com/eggert/tz.git
