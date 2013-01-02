@@ -11,6 +11,7 @@ Tokenizer = require "./tokenizer"
 class OlsonReader
     constructor: ->
         @tokenizer = new Tokenizer
+        @allowedFiles = null
 
     _isEmptyLine: (line) ->
         line.length < 1
@@ -105,22 +106,22 @@ class OlsonReader
                 zones: zones
 
     directory: (dirPath, next) ->
-        files = {}
+        results = {}
 
-        fs.readdir dirPath, (err, files) =>
+        fs.readdir dirPath, (err, dirFiles) =>
             currFile = 0
-            fileLength = files.length
+            fileLength = dirFiles.length
             handleFinishedFile = (result) =>
                 if result
-                    files[files[currFile]] = result
+                    results[dirFiles[currFile]] = result
 
                 currFile++
-                return next files unless currFile < fileLength
+                return next results unless currFile < fileLength
 
-                @singleFile "#{dirPath}/#{files[currFile]}", handleFinishedFile
+                @singleFile "#{dirPath}/#{dirFiles[currFile]}", handleFinishedFile
 
             # Kick off the processing
-            @singleFile "#{dirPath}/#{files[currFile]}", handleFinishedFile
+            @singleFile "#{dirPath}/#{dirFiles[currFile]}", handleFinishedFile
              
                 
 module.exports = OlsonReader
