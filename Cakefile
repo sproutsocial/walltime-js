@@ -13,7 +13,26 @@ reset = '\x1B[0m'
 
 pkg = JSON.parse fs.readFileSync('./package.json')
 testCmd = pkg.scripts.test
-  
+
+# Allowed olson files
+allowedFiles = [
+    'africa'
+    'antarctica'
+    'asia'
+    'australasia'
+    'backward'
+    'etcetera'
+    'europe'
+    'factory'
+    'leapseconds'
+    'northamerica'
+    'pacificnew'
+    'solar87'
+    'solar88'
+    'solar89'
+    'southamerica'
+    'systemv'
+  ]  
 
 log = (message, color = green, explanation = '') ->
   console.log color + message + reset + ' ' + explanation
@@ -52,7 +71,6 @@ minifyJSFile = (filePath, callback) ->
       throw ierr if ierr
 
       callback?(minFileName)
-
 
 build = (callback) ->
   compileCoffeeFiles ->
@@ -176,17 +194,17 @@ buildDataFile = (opts, callback) ->
       minifyJSFile outFile, (minFileName) ->
         log "Success!", green, "- Files written to: #{outFile} and #{minFileName}"
         callback?()
-  
-  if opts.olsonfiles
-    olsonFiles.readFrom opts.olsonfiles, processOlsonFiles
-  else
-    olsonFiles.downloadAndRead "./client/olson", processOlsonFiles
 
+  # Set the allowed files to process so we have more control over what comes in.
+  olsonFiles.reader.allowedFiles = allowedFiles
+  
+  olsonFiles.readFrom "./client/olson", processOlsonFiles
+  
 task 'data', "Build the client side olson data package (defaults to all timezone files and all zones)", (opts) ->
   buildDataFile opts
 
 task 'individual', (opts) ->
-  olsonFilePath = "./client/olson"
+  olsonFilePath = process.cwd() + "/client/olson/"
   slashRegex = new RegExp "\/", "g"
   spaceRegex = new RegExp " ", "g"
 
@@ -211,12 +229,13 @@ task 'individual', (opts) ->
 
     processFile()
   
-  if opts.olsonfiles
-    olsonFilePath = opts.olsonfiles
-    olsonFiles.readFrom olsonFilePath, processFiles
-  else
-    olsonFiles.downloadAndRead olsonFilePath, processFiles 
 
+  olsonFiles.reader.allowedFiles = allowedFiles
+  olsonFiles.readFrom olsonFilePath, processFiles
+
+task 'test', ->
+  test ->
+    log "Success!"
 
 task 'clean', ->
   removeCompiledFiles ->

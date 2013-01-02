@@ -109,6 +109,8 @@ class OlsonReader
         results = {}
 
         fs.readdir dirPath, (err, dirFiles) =>
+            throw err if err
+
             currFile = 0
             fileLength = dirFiles.length
             handleFinishedFile = (result) =>
@@ -116,9 +118,23 @@ class OlsonReader
                     results[dirFiles[currFile]] = result
 
                 currFile++
+                # Skip any not allowed files
+                if @allowedFiles
+                    while currFile < fileLength and dirFiles[currFile] not in @allowedFiles
+                        currFile++
+
+                # Bug out if out of files to read
                 return next results unless currFile < fileLength
 
                 @singleFile "#{dirPath}/#{dirFiles[currFile]}", handleFinishedFile
+
+            # Skip any not allowed files
+            if @allowedFiles
+                while currFile < fileLength and dirFiles[currFile] not in @allowedFiles
+                    currFile++
+            
+            # Bug out if out of files to read
+            return next results unless currFile < fileLength
 
             # Kick off the processing
             @singleFile "#{dirPath}/#{dirFiles[currFile]}", handleFinishedFile
