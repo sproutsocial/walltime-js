@@ -392,6 +392,55 @@ describe "walltime-js", ->
         it "can translate January 4 2013, 8:00 AM correctly", ->
             testTimestamp Jan4_8AM_2013, 2013, 0, 4, 8, 0
 
+    describe "WallTimeToUTC (Australia/Adelaide)", ->
+        ###
+        Daylight savings in Australia/Adelaide is generally opposite of the united states.
+
+        GMT Offset is +9:30.  
+
+        Enter Daylight savings (Spring Forward) on October 7, 2012 3:00 AM -> 2:00 AM
+        Leave Daylights savings (Fall Back) on April 1, 2012 2:00 AM -> 3:00 AM
+        ###
+
+        Mar28_8AM_2012 = 1332883800000
+        Apr3_8AM_2012 = 1333405800000
+        Sep28_8AM_2012 = 1348785000000
+        Oct10_8AM_2012 = 1349818200000
+        Jan4_8AM_2013 = 1357248600000
+
+        testTimestamp = (ts, yr, month, day, hr, min) ->
+            result = WallTime.WallTimeToUTC "Australia/Adelaide", yr, month, day, hr, min
+
+            result.getTime().should.equal ts, "Timestamp"
+
+        before (next) ->
+            readTimezoneFile "./test/rsrc/full/australasia", next
+
+        beforeEach ->
+            WallTime.init rules, zones
+
+            WallTime.setTimeZone "Australia/Adelaide"
+
+        # Before the DST Transition
+        it "can translate March 28 2012, 8:00 AM correctly", ->
+            testTimestamp Mar28_8AM_2012, 2012, 2, 28, 8, 0
+
+        # After the DST Transition
+        it "can translate April 3 2012, 8:00 AM correctly", ->
+            testTimestamp Apr3_8AM_2012, 2012, 3, 3, 8, 0
+
+        # During the DST Transition
+        it "can translate September 28 2012, 8:00 AM correctly", ->
+            testTimestamp Sep28_8AM_2012, 2012, 8, 28, 8, 0
+
+        # After the DST Regression
+        it "can translate October 10 2012, 8:00 AM correctly", ->
+            testTimestamp Oct10_8AM_2012, 2012, 9, 10, 8, 0
+
+        # After the DST Regression beginning of year
+        it "can translate January 4 2013, 8:00 AM correctly", ->
+            testTimestamp Jan4_8AM_2013, 2013, 0, 4, 8, 0
+
         
 
 
