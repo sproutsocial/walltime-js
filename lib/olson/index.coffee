@@ -12,6 +12,8 @@ class OlsonFiles
         @reader.directory filePath, next
 
     downloadAndRead: (filePath, next) ->
+        console.log "This method is deprecated and will be removed in future versions; please use the git submodule of this project to load olson files"
+        
         @downloadTo filePath, =>
             @readFrom filePath, (files) =>
                 @_cleanFolder filePath, =>

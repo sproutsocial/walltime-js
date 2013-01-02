@@ -104,6 +104,21 @@ describe "Olson Reader", ->
 
             do done
 
+    it "allows you to specify which files should be read", (done) ->
+        reader = new OlsonReader
+
+        reader.allowedFiles = ["America-Chicago"]
+
+        reader.directory "./test/rsrc", (result) ->
+            should.exist result, "Should have returned a result"
+            
+            should.exist result["America-Chicago"], "Should have Chicago file"
+            should.exist result["America-Chicago"].zones["America/Chicago"], "Should have Chicago zone in Chicago file"
+
+            should.not.exist result["America-New_York"], "Should not have New York file"
+            
+            do done
+
     it "can read the northamerica Olson file", (done) ->
         reader = new OlsonReader
 
