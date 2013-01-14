@@ -1,11 +1,11 @@
 walltime-js [![Build Status](https://secure.travis-ci.org/sproutsocial/walltime-js.png)](http://travis-ci.org/sproutsocial/walltime-js)
 ===========
 
-A javascript library for easily translating a UTC time to a "Wall Time" for a particular time zone.
+Walltime-js is a JavaScript library for easily translating a UTC time to a "Wall Time" for a particular time zone.
 
 ## Problems this solves
 
-Dates in javascript do not properly account for daylight savings time for other regions than your own browser configured time zone.
+Dates in JavaScript do not properly account for daylight savings time for regions other than your own browser configured time zone.
 
 For example:
 
@@ -23,11 +23,11 @@ For example:
 
 ## Building Data
 
-To limit the size of WallTime.js you should only use the data for the time zone files you need.  
+To limit the size of WallTime.js, you should only use the data for the time zone files you need.  
 
-By default, `walltime-data.js` contains `northamerica`, `europe` and `australasia` which encompass most of the world but is 479k (minified).  By narrowing it down to just `northamerica` you could save 300k, adding gzip compression could get you down as low as 16k.
+By default, `walltime-data.js` contains `northamerica`, `europe` and `australasia`, which encompass most of the world, but is 479k (minified).  By narrowing it down to just `northamerica`, you could save 300k. Adding gzip compression could get you down as low as 16k.
 
-This project uses [node js](http://nodejs.org) and [CoffeeScript](http://coffeescript.org); go and install them if you don't have them.
+This project uses [Node.js](http://nodejs.org) and [CoffeeScript](http://coffeescript.org); go and install them if you don't have them.
 
 To get the latest Olson files
 
@@ -68,4 +68,4 @@ To run tests
 
     cake test
 
-To make new tests create a new spec coffee file in the test directory.
+To make new tests, create a new spec coffee file in the test directory.
