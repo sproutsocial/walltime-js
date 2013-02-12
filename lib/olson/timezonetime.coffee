@@ -23,6 +23,20 @@ init = (helpers) ->
             caps = utcStr.match "([a-zA-Z]*), ([0-9]+) ([a-zA-Z]*) ([0-9]+)"
             [caps[1], caps[3], caps[2], caps[4]].join " "
 
+        toFormattedTime: (use24HourTime = false) ->
+            hour = @getHours()
+            min = @getMinutes()
+
+            meridiem = if hour > 11 then 'PM' else 'AM'
+
+            if (min < 10) then min = "0" + min
+            if hour > 12 and !use24HourTime then hour -= 12
+            if hour == 0 then hour = 12
+
+            return if use24HourTime
+            then hour + ':' + min
+            else hour + ':' + min + ' ' + meridiem
+
         setHours: (h, mi, s, ms) -> @wallTime.setUTCHours(h, mi, s, ms)
 
     TimeZoneTime
