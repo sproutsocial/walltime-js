@@ -31,7 +31,7 @@ if typeof window == 'undefined'
     req_helpers = require "./helpers"
     module.exports = init(req_helpers)
 else if typeof define != 'undefined'
-    define ["olson/helpers"], "TimeZoneTime", init
+    define ["olson/helpers"], "timezonetime", init
 else
     @.WallTime or= {}
     @.WallTime.TimeZoneTime = init(@.WallTime.helpers)
