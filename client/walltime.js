@@ -352,6 +352,30 @@
         return [caps[1], caps[3], caps[2], caps[4]].join(" ");
       };
 
+      TimeZoneTime.prototype.toFormattedTime = function(use24HourTime) {
+        var hour, meridiem, min;
+        if (use24HourTime == null) {
+          use24HourTime = false;
+        }
+        hour = this.getHours();
+        min = this.getMinutes();
+        meridiem = hour > 11 ? 'PM' : 'AM';
+        if (min < 10) {
+          min = "0" + min;
+        }
+        if (hour > 12 && !use24HourTime) {
+          hour -= 12;
+        }
+        if (hour === 0) {
+          hour = 12;
+        }
+        if (use24HourTime) {
+          return hour + ':' + min;
+        } else {
+          return hour + ':' + min + ' ' + meridiem;
+        }
+      };
+
       TimeZoneTime.prototype.setHours = function(h, mi, s, ms) {
         return this.wallTime.setUTCHours(h, mi, s, ms);
       };
@@ -366,7 +390,7 @@
     req_helpers = require("./helpers");
     module.exports = init(req_helpers);
   } else if (typeof define !== 'undefined') {
-    define('olson/TimeZoneTime',["olson/helpers"], "TimeZoneTime", init);
+    define('olson/timezonetime',["olson/helpers"], "timezonetime", init);
   } else {
     this.WallTime || (this.WallTime = {});
     this.WallTime.TimeZoneTime = init(this.WallTime.helpers);
@@ -881,7 +905,7 @@
     req_TimeZoneTime = require("./timezonetime");
     module.exports = init(req_helpers, req_TimeZoneTime);
   } else if (typeof define !== 'undefined') {
-    define('olson/rule',["olson/helpers", "olson/TimeZoneTime"], init);
+    define('olson/rule',["olson/helpers", "olson/timezonetime"], init);
   } else {
     this.WallTime || (this.WallTime = {});
     this.WallTime.rule = init(this.WallTime.helpers, this.WallTime.TimeZoneTime);
@@ -1116,7 +1140,7 @@
     req_TimeZoneTime = require("./timezonetime");
     module.exports = init(req_helpers, req_rule, req_TimeZoneTime);
   } else if (typeof define !== 'undefined') {
-    define('olson/zone',["olson/helpers", "olson/rule", "olson/TimeZoneTime"], init);
+    define('olson/zone',["olson/helpers", "olson/rule", "olson/timezonetime"], init);
   } else {
     this.WallTime || (this.WallTime = {});
     this.WallTime.zone = init(this.WallTime.helpers, this.WallTime.rule, this.WallTime.TimeZoneTime);
