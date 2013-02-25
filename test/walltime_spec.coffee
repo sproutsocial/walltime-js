@@ -141,6 +141,29 @@ describe "walltime-js", ->
 
         result.wallTime.getTime().should.equal expectWallTime.wallTime.getTime(), "WallTimes: #{result.wallTime.toUTCString()} :: #{expectWallTime.wallTime.toUTCString()}"
 
+    describe "UTCToWallTime", ->
+
+        it "can be called before setTimeZone as long as zone is passed", ->
+            WallTime.init rules, zones
+
+            currTime = new Date().getTime()
+
+            result = WallTime.UTCToWallTime currTime, "America/Chicago"
+
+            should.exist result
+
+        it "throws an error when you don't setTimeZone and don't pass a zone", ->
+            WallTime.init rules, zones
+
+            currTime = new Date().getTime()
+            result = null
+
+            callFunc = ->
+                result = WallTime.UTCToWallTime currTime
+
+            callFunc.should.throw()
+            should.not.exist result
+
     describe "UTCToWallTime (America/Chicago)", ->
         before (next) ->
             readTimezoneFile "./test/rsrc/full/northamerica", next

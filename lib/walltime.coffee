@@ -22,6 +22,8 @@ init = (helpers, rule, zone) ->
                 newRules = (new rule.Rule(r.name, r._from, r._to, r.type, r.in, r.on, r.at, r._save, r.letter) for r in ruleVals)
                 @rules[ruleName] = newRules
             
+            @zoneSet = null
+            @timeZoneName = null
             @doneInit = true
 
         setTimeZone: (name) ->
@@ -44,11 +46,11 @@ init = (helpers, rule, zone) ->
             if typeof dt == "number"
                 dt = new Date(dt)
 
-            if !@zoneSet
-                throw new Error "Must set the time zone before converting times"
-
             if zoneName != @timeZoneName
                 @setTimeZone zoneName
+
+            if !@zoneSet
+                throw new Error "Must set the time zone before converting times"
 
             @zoneSet.getWallTimeForUTC dt
 
