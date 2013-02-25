@@ -1197,6 +1197,8 @@
           })();
           this.rules[ruleName] = newRules;
         }
+        this.zoneSet = null;
+        this.timeZoneName = null;
         return this.doneInit = true;
       };
 
@@ -1246,11 +1248,11 @@
         if (typeof dt === "number") {
           dt = new Date(dt);
         }
-        if (!this.zoneSet) {
-          throw new Error("Must set the time zone before converting times");
-        }
         if (zoneName !== this.timeZoneName) {
           this.setTimeZone(zoneName);
+        }
+        if (!this.zoneSet) {
+          throw new Error("Must set the time zone before converting times");
         }
         return this.zoneSet.getWallTimeForUTC(dt);
       };
