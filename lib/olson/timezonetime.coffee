@@ -18,26 +18,65 @@ init = (helpers) ->
         getMilliseconds: -> @wallTime.getUTCMilliseconds()
         getTime: -> @utc.getTime()
 
+
+        toISOString: -> @walltime.toISOString()
+
         toDateString: ->
             utcStr = @wallTime.toUTCString()
             caps = utcStr.match "([a-zA-Z]*), ([0-9]+) ([a-zA-Z]*) ([0-9]+)"
             [caps[1], caps[3], caps[2], caps[4]].join " "
 
         toFormattedTime: (use24HourTime = false) ->
-            hour = @getHours()
+            hour = origHour = @getHours()
+            hour -= 12 if hour > 12 and !use24HourTime
+
+            hour = 12 if hour == 0
+
             min = @getMinutes()
+            min = "0" + min if min < 10
 
-            meridiem = if hour > 11 then 'PM' else 'AM'
+            meridiem = if origHour > 11 then ' PM' else ' AM'
+            meridiem = '' if use24HourTime
+            
+            "#{hour}:#{min}#{meridiem}"
 
-            if (min < 10) then min = "0" + min
-            if hour > 12 and !use24HourTime then hour -= 12
-            if hour == 0 then hour = 12
+        setTime: (ms) ->
+            @wallTime = helpers.Time.UTCToWallTime new Date(ms), @zone.offset, @save
+            @_updateUTC()
 
-            return if use24HourTime
-            then hour + ':' + min
-            else hour + ':' + min + ' ' + meridiem
+        setFullYear: (y) ->
+            @wallTime.setUTCFullYear y
+            @_updateUTC()
 
-        setHours: (h, mi, s, ms) -> @wallTime.setUTCHours(h, mi, s, ms)
+        setMonth: (m) ->
+            @wallTime.setUTCMonth m
+            @_updateUTC()
+
+        setDate: (utcDate) ->
+            @wallTime.setUTCDate utcDate
+            @_updateUTC()
+
+        setHours: (hours) ->
+            @wallTime.setUTCHours hours
+            @_updateUTC()
+
+        setMinutes: (m) ->
+            @wallTime.setUTCMinutes m
+            @_updateUTC()
+
+        setSeconds: (s) ->
+            @wallTime.setUTCSeconds s
+            @_updateUTC()
+
+        setMilliseconds: (ms) ->
+            @wallTime.setUTCMilliseconds ms
+            @_updateUTC()
+
+        # Updates to 
+        _updateUTC: ->
+            @utc = helpers.Time.WallTimeToUTC @offset, @save, @getFullYear(), @getMonth(), @getDate(), @getHours(), @getMinutes(), @getSeconds(), @getMilliseconds()
+
+            @utc.getTime()
 
     TimeZoneTime
 
