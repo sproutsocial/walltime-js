@@ -345,6 +345,10 @@
         return this.utc.getTime();
       };
 
+      TimeZoneTime.prototype.toISOString = function() {
+        return this.walltime.toISOString();
+      };
+
       TimeZoneTime.prototype.toDateString = function() {
         var caps, utcStr;
         utcStr = this.wallTime.toUTCString();
@@ -353,31 +357,71 @@
       };
 
       TimeZoneTime.prototype.toFormattedTime = function(use24HourTime) {
-        var hour, meridiem, min;
+        var hour, meridiem, min, origHour;
         if (use24HourTime == null) {
           use24HourTime = false;
         }
-        hour = this.getHours();
-        min = this.getMinutes();
-        meridiem = hour > 11 ? 'PM' : 'AM';
-        if (min < 10) {
-          min = "0" + min;
-        }
+        hour = origHour = this.getHours();
         if (hour > 12 && !use24HourTime) {
           hour -= 12;
         }
         if (hour === 0) {
           hour = 12;
         }
-        if (use24HourTime) {
-          return hour + ':' + min;
-        } else {
-          return hour + ':' + min + ' ' + meridiem;
+        min = this.getMinutes();
+        if (min < 10) {
+          min = "0" + min;
         }
+        meridiem = origHour > 11 ? ' PM' : ' AM';
+        if (use24HourTime) {
+          meridiem = '';
+        }
+        return "" + hour + ":" + min + meridiem;
       };
 
-      TimeZoneTime.prototype.setHours = function(h, mi, s, ms) {
-        return this.wallTime.setUTCHours(h, mi, s, ms);
+      TimeZoneTime.prototype.setTime = function(ms) {
+        this.wallTime = helpers.Time.UTCToWallTime(new Date(ms), this.zone.offset, this.save);
+        return this._updateUTC();
+      };
+
+      TimeZoneTime.prototype.setFullYear = function(y) {
+        this.wallTime.setUTCFullYear(y);
+        return this._updateUTC();
+      };
+
+      TimeZoneTime.prototype.setMonth = function(m) {
+        this.wallTime.setUTCMonth(m);
+        return this._updateUTC();
+      };
+
+      TimeZoneTime.prototype.setDate = function(utcDate) {
+        this.wallTime.setUTCDate(utcDate);
+        return this._updateUTC();
+      };
+
+      TimeZoneTime.prototype.setHours = function(hours) {
+        this.wallTime.setUTCHours(hours);
+        return this._updateUTC();
+      };
+
+      TimeZoneTime.prototype.setMinutes = function(m) {
+        this.wallTime.setUTCMinutes(m);
+        return this._updateUTC();
+      };
+
+      TimeZoneTime.prototype.setSeconds = function(s) {
+        this.wallTime.setUTCSeconds(s);
+        return this._updateUTC();
+      };
+
+      TimeZoneTime.prototype.setMilliseconds = function(ms) {
+        this.wallTime.setUTCMilliseconds(ms);
+        return this._updateUTC();
+      };
+
+      TimeZoneTime.prototype._updateUTC = function() {
+        this.utc = helpers.Time.WallTimeToUTC(this.offset, this.save, this.getFullYear(), this.getMonth(), this.getDate(), this.getHours(), this.getMinutes(), this.getSeconds(), this.getMilliseconds());
+        return this.utc.getTime();
       };
 
       return TimeZoneTime;
