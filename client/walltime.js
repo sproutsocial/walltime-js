@@ -29,8 +29,51 @@
 
   Months = {
     MonthsShortNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    CompareRuleMatch: new RegExp("([a-zA-Z]*)([\\<\\>]?=)([0-9]*)"),
     MonthIndex: function(shortName) {
       return this.MonthsShortNames.indexOf(shortName.slice(0, 3));
+    },
+    IsDayOfMonthRule: function(str) {
+      return str.indexOf(">") > -1 || str.indexOf("<") > -1 || str.indexOf("=") > -1;
+    },
+    DayOfMonthByRule: function(str, year, month) {
+      var compareFunc, compares, dateIndex, dayIndex, dayName, ruleParse, testDate, testPart, _ref;
+      ruleParse = this.CompareRuleMatch.exec(str);
+      if (!ruleParse) {
+        throw new Error("Unable to parse the 'on' rule for " + str);
+      }
+      _ref = ruleParse.slice(1, 4), dayName = _ref[0], testPart = _ref[1], dateIndex = _ref[2];
+      dateIndex = parseInt(dateIndex, 10);
+      if (dateIndex === NaN) {
+        throw new Error("Unable to parse the dateIndex of the 'on' rule for " + str);
+      }
+      dayIndex = helpers.Days.DayIndex(dayName);
+      compares = {
+        ">=": function(a, b) {
+          return a >= b;
+        },
+        "<=": function(a, b) {
+          return a <= b;
+        },
+        ">": function(a, b) {
+          return a > b;
+        },
+        "<": function(a, b) {
+          return a < b;
+        },
+        "=": function(a, b) {
+          return a === b;
+        }
+      };
+      compareFunc = compares[testPart];
+      if (!compareFunc) {
+        throw new Error("Unable to parse the conditional for " + testPart);
+      }
+      testDate = helpers.Time.MakeDateFromParts(year, month);
+      while (!(dayIndex === testDate.getUTCDay() && compareFunc(testDate.getUTCDate(), dateIndex))) {
+        testDate = helpers.Days.AddToDate(testDate, 1);
+      }
+      return testDate.getUTCDate();
     }
   };
 
@@ -495,50 +538,10 @@
 
       function CompareOnFieldHandler() {}
 
-      CompareOnFieldHandler.prototype._onCompareRuleMatch = new RegExp("([a-zA-Z]*)([\\<\\>]?=)([0-9]*)");
+      CompareOnFieldHandler.prototype.applies = helpers.Months.IsDayOfMonthRule;
 
-      CompareOnFieldHandler.prototype.applies = function(str) {
-        return str.indexOf(">") > -1 || str.indexOf("<") > -1 || str.indexOf("=") > -1;
-      };
-
-      CompareOnFieldHandler.prototype.parseDate = function(str, year, month, qualifier, gmtOffset, daylightOffset) {
-        var compareFunc, compares, dateIndex, dayIndex, dayName, ruleParse, testDate, testPart, _ref;
-        ruleParse = this._onCompareRuleMatch.exec(str);
-        if (!ruleParse) {
-          throw new Error("Unable to parse the 'on' rule for " + str);
-        }
-        _ref = ruleParse.slice(1, 4), dayName = _ref[0], testPart = _ref[1], dateIndex = _ref[2];
-        dateIndex = parseInt(dateIndex, 10);
-        if (dateIndex === NaN) {
-          throw new Error("Unable to parse the dateIndex of the 'on' rule for " + str);
-        }
-        dayIndex = helpers.Days.DayIndex(dayName);
-        compares = {
-          ">=": function(a, b) {
-            return a >= b;
-          },
-          "<=": function(a, b) {
-            return a <= b;
-          },
-          ">": function(a, b) {
-            return a > b;
-          },
-          "<": function(a, b) {
-            return a < b;
-          },
-          "=": function(a, b) {
-            return a === b;
-          }
-        };
-        compareFunc = compares[testPart];
-        if (!compareFunc) {
-          throw new Error("Unable to parse the conditional for " + testPart);
-        }
-        testDate = helpers.Time.MakeDateFromParts(year, month);
-        while (!(dayIndex === testDate.getUTCDay() && compareFunc(testDate.getUTCDate(), dateIndex))) {
-          testDate = helpers.Days.AddToDate(testDate, 1);
-        }
-        return testDate.getUTCDate();
+      CompareOnFieldHandler.prototype.parseDate = function(str, year, month) {
+        return helpers.Months.DayOfMonthByRule(str, year, month);
       };
 
       return CompareOnFieldHandler;
@@ -996,7 +999,12 @@
         }
         year = parseInt(year, 10);
         month = monthName ? helpers.Months.MonthIndex(monthName) : 0;
-        day = day ? parseInt(day, 10) : 0;
+        day || (day = "1");
+        if (helpers.Months.IsDayOfMonthRule(day)) {
+          day = helpers.Months.DayOfMonthByRule(day, year, month);
+        } else {
+          day = parseInt(day, 10);
+        }
         standardTime = helpers.Time.StandardTimeToUTC(this.offset, year, month, day, h, mi, s);
         endTime = helpers.Time.MakeDateFromTimeStamp(standardTime.getTime() - 1);
         return endTime;
