@@ -22,6 +22,7 @@ init = (helpers, rule, TimeZoneTime) ->
             # Doing the long parsing of the until field
             # Example: 1936 Mar 1 2:00
             # Example: 1883 Nov 18 12:14:48
+            # Chihuahua: 1998 Apr Sun>=1 3:00
             [year, monthName, day, time] = til.split " "
             [neg, h, mi, s] = if time then helpers.Time.ParseGMTOffset time else [false, 0, 0, 0]
 
@@ -33,7 +34,13 @@ init = (helpers, rule, TimeZoneTime) ->
             # Otherwise, parse what we have
             year = parseInt year, 10
             month = if monthName then helpers.Months.MonthIndex monthName else 0
-            day = if day then parseInt(day, 10) else 0
+
+            # default to 1
+            day or= "1"
+
+            # Check for day ranges: Sun>=1
+            if helpers.Months.IsDayOfMonthRule day
+                day = helpers.Months.DayOfMonthByRule day, year, month
 
             standardTime = helpers.Time.StandardTimeToUTC @offset, year, month, day, h, mi, s
             # The end time is not inclusive, so back off by 1 millisecond
@@ -61,7 +68,6 @@ init = (helpers, rule, TimeZoneTime) ->
             endSave = rules.getYearEndDST @range.end
 
             @range.end = helpers.Time.ApplySave @range.end, endSave
-
 
         UTCToWallTime: (dt, getRulesNamed) ->
             # Standard Time

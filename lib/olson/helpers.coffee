@@ -18,8 +18,47 @@ Days =
 # Some helpers for going between month names and indices
 Months = 
     MonthsShortNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    CompareRuleMatch: new RegExp "([a-zA-Z]*)([\\<\\>]?=)([0-9]*)"
     MonthIndex: (shortName) ->
         @MonthsShortNames.indexOf shortName.slice(0, 3)
+    IsDayOfMonthRule: (str) ->
+        str.indexOf(">") > -1 or str.indexOf("<") > -1 or str.indexOf("=") > -1
+    DayOfMonthByRule: (str, year, month) ->
+        # Parse our onStr into the components
+        ruleParse = @CompareRuleMatch.exec str
+
+        if !ruleParse
+            throw new Error "Unable to parse the 'on' rule for #{str}"
+
+        # Whoa, destructured assignment? Hell yeah!
+        [dayName, testPart, dateIndex] = ruleParse[1..3]
+
+        dateIndex = parseInt dateIndex, 10
+        if dateIndex is NaN
+            throw new Error "Unable to parse the dateIndex of the 'on' rule for #{str}"
+        
+        dayIndex = helpers.Days.DayIndex dayName
+
+        # Set up the compare functions based on the conditional parsed from the onStr
+        compares =
+            ">=": (a, b) -> a >= b
+            "<=": (a, b) -> a <= b
+            ">": (a, b) -> a > b
+            "<": (a, b) -> a < b
+            "=": (a, b) -> a == b
+
+        compareFunc = compares[testPart]
+        if !compareFunc
+            throw new Error "Unable to parse the conditional for #{testPart}"
+
+        # Begin at the beginning of the month, at worst we are iterating 30 or so extra times.
+        testDate = helpers.Time.MakeDateFromParts year, month
+
+        # Go forward one day at a time until we get a matching day of the week (Sun) and the compare of the date of the month passes (8 >= 8)
+        while !(dayIndex == testDate.getUTCDay() and compareFunc(testDate.getUTCDate(), dateIndex))
+            testDate = helpers.Days.AddToDate testDate, 1
+
+        testDate.getUTCDate()
 
 Milliseconds = 
     inDay:    86400000

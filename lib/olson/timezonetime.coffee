@@ -16,7 +16,7 @@ init = (helpers) ->
         getMinutes: -> @wallTime.getUTCMinutes()
         getSeconds: -> @wallTime.getUTCSeconds()
         getMilliseconds: -> @wallTime.getUTCMilliseconds()
-        getTime: -> @utc.getTime()
+        #getTime: -> @utc.getTime()
 
 
         toISOString: -> @walltime.toISOString()
