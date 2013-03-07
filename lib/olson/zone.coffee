@@ -41,6 +41,8 @@ init = (helpers, rule, TimeZoneTime) ->
             # Check for day ranges: Sun>=1
             if helpers.Months.IsDayOfMonthRule day
                 day = helpers.Months.DayOfMonthByRule day, year, month
+            else
+                day = parseInt day, 10
 
             standardTime = helpers.Time.StandardTimeToUTC @offset, year, month, day, h, mi, s
             # The end time is not inclusive, so back off by 1 millisecond
