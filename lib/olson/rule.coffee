@@ -36,7 +36,6 @@ init = (helpers, TimeZoneTime) ->
 
     # Handles a "Sun>=8" type of value for the on field of a rule
     class CompareOnFieldHandler
-        _onCompareRuleMatch: new RegExp "([a-zA-Z]*)([\\<\\>]?=)([0-9]*)"
         applies: helpers.Months.IsDayOfMonthRule
         parseDate: (str, year, month) ->
             helpers.Months.DayOfMonthByRule str, year, month
