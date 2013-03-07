@@ -36,44 +36,9 @@ init = (helpers, TimeZoneTime) ->
 
     # Handles a "Sun>=8" type of value for the on field of a rule
     class CompareOnFieldHandler
-        _onCompareRuleMatch: new RegExp "([a-zA-Z]*)([\\<\\>]?=)([0-9]*)"
-        applies: (str) -> str.indexOf(">") > -1 or str.indexOf("<") > -1 or str.indexOf("=") > -1
-        parseDate: (str, year, month, qualifier, gmtOffset, daylightOffset) ->
-            # Parse our onStr into the components
-            ruleParse = @_onCompareRuleMatch.exec str
-
-            if !ruleParse
-                throw new Error "Unable to parse the 'on' rule for #{str}"
-
-            # Whoa, destructured assignment? Hell yeah!
-            [dayName, testPart, dateIndex] = ruleParse[1..3]
-
-            dateIndex = parseInt dateIndex, 10
-            if dateIndex is NaN
-                throw new Error "Unable to parse the dateIndex of the 'on' rule for #{str}"
-            
-            dayIndex = helpers.Days.DayIndex dayName
-
-            # Set up the compare functions based on the conditional parsed from the onStr
-            compares =
-                ">=": (a, b) -> a >= b
-                "<=": (a, b) -> a <= b
-                ">": (a, b) -> a > b
-                "<": (a, b) -> a < b
-                "=": (a, b) -> a == b
-
-            compareFunc = compares[testPart]
-            if !compareFunc
-                throw new Error "Unable to parse the conditional for #{testPart}"
-
-            # Begin at the beginning of the month, at worst we are iterating 30 or so extra times.
-            testDate = helpers.Time.MakeDateFromParts year, month
-
-            # Go forward one day at a time until we get a matching day of the week (Sun) and the compare of the date of the month passes (8 >= 8)
-            while !(dayIndex == testDate.getUTCDay() and compareFunc(testDate.getUTCDate(), dateIndex))
-                testDate = helpers.Days.AddToDate testDate, 1
-
-            return testDate.getUTCDate()
+        applies: helpers.Months.IsDayOfMonthRule
+        parseDate: (str, year, month) ->
+            helpers.Months.DayOfMonthByRule str, year, month
 
     # A Rule represents an Olson file line describing both a state of time for a given TimeZone
     # and a transition to daylight savings offset.

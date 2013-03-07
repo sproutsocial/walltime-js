@@ -32,7 +32,10 @@ describe "Olson Zones", ->
     makeZone = ->
         new OlsonZone("America/Chicago", "-5:50:36", "-", "LMT", "1883 Nov 18 12:09:24")
 
-    it "can set the begin and end range correctly", ->
+    makeRangeZone = ->
+        new OlsonZone("America/Chihuahua", "-7:00:00", "-", "M%sT", "1998 Apr Sun>=1 3:00")
+
+    it "can set the begin and end range correctly for explicit end", ->
         zone = makeZone()
 
         expect = helpers.Time.MakeDateFromParts 1883, 10, 18, 12, 9, 24
@@ -45,6 +48,21 @@ describe "Olson Zones", ->
         expect = helpers.Time.MakeDateFromTimeStamp(expect.getTime() - 1)
 
         zone.range.end.toUTCString().should.equal expect.toUTCString()
+
+    it "can set the begin and end range correctly for end with range", ->
+        zone = makeRangeZone()
+
+        expect = helpers.Time.MakeDateFromParts 1998, 3, 5, 3, 0
+        expect = helpers.Time.ApplyOffset expect, 
+            negative: true
+            hours: 7
+            mins: 0
+            secs: 0
+
+        expect = helpers.Time.MakeDateFromTimeStamp(expect.getTime() - 1)
+
+        zone.range.end.toUTCString().should.equal expect.toUTCString()
+
 
     it "can process from full Zone lines with beginning having minimum date", ->
         zone = processZone fullZoneLine
