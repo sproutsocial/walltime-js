@@ -389,7 +389,7 @@
       };
 
       TimeZoneTime.prototype.toISOString = function() {
-        return this.walltime.toISOString();
+        return this.wallTime.toISOString();
       };
 
       TimeZoneTime.prototype.toDateString = function() {

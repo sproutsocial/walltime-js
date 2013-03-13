@@ -45,6 +45,11 @@ describe "timezonetime", ->
 
         WallTime.setTimeZone "America/Chicago"
 
+    it ".toISOString() works", ->
+        date = WallTime.UTCToWallTime Feb12_2013_1433
+
+        date.toISOString().should.equal "2013-02-12T14:33:27.000Z"
+
     it "sets year correctly", ->
         date = WallTime.UTCToWallTime Feb12_2013_1433
         date.getFullYear().should.equal 2013
