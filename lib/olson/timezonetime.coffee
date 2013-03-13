@@ -19,7 +19,7 @@ init = (helpers) ->
         getTime: -> @utc.getTime()
 
 
-        toISOString: -> @walltime.toISOString()
+        toISOString: -> @wallTime.toISOString()
 
         toDateString: ->
             utcStr = @wallTime.toUTCString()
