@@ -30,8 +30,6 @@ init = (helpers) ->
         getTime: -> @utc.getTime()
 
         getTimezoneOffset: -> 
-            console.log @offset, @save
-
             base = (@offset.hours * 60) + @offset.mins
 
             dst = (@save.hours * 60) + @save.mins

@@ -2,10 +2,19 @@
 init = (helpers, rule, zone) ->    
 
     class WallTime
-        
+
         init: (rules = {}, zones = {}) ->
             
             @zones = {}
+            @rules = {}
+
+            @addRulesZones rules, zones
+            
+            @zoneSet = null
+            @timeZoneName = null
+            @doneInit = true
+
+        addRulesZones: (rules = {}, zones = {}) ->
             currZone = null
             for own zoneName, zoneVals of zones
                 newZones = []
@@ -17,14 +26,9 @@ init = (helpers, rule, zone) ->
 
                 @zones[zoneName] = newZones
 
-            @rules = {}
             for own ruleName, ruleVals of rules
                 newRules = (new rule.Rule(r.name, r._from, r._to, r.type, r.in, r.on, r.at, r._save, r.letter) for r in ruleVals)
                 @rules[ruleName] = newRules
-            
-            @zoneSet = null
-            @timeZoneName = null
-            @doneInit = true
 
         setTimeZone: (name) ->
             if !@doneInit
