@@ -5,7 +5,7 @@ init = (helpers) ->
     class TimeZoneTime
         constructor: (@utc, @zone, @save) ->
             @offset = @zone.offset        
-            @wallTime = helpers.Time.UTCToWallTime @utc, @zone.offset, @save
+            @wallTime = helpers.Time.UTCToWallTime @utc, @offset, @save
 
         # Standard Date overrides
         getFullYear: -> @wallTime.getUTCFullYear()
@@ -16,10 +16,34 @@ init = (helpers) ->
         getMinutes: -> @wallTime.getUTCMinutes()
         getSeconds: -> @wallTime.getUTCSeconds()
         getMilliseconds: -> @wallTime.getUTCMilliseconds()
+        
+        # UTC Date overrides
+        getUTCFullYear: -> @utc.getUTCFullYear()
+        getUTCMonth: -> @utc.getUTCMonth()
+        getUTCDate: -> @utc.getUTCDate()
+        getUTCDay: -> @utc.getUTCDay()
+        getUTCHours: -> @utc.getUTCHours()
+        getUTCMinutes: -> @utc.getUTCMinutes()
+        getUTCSeconds: -> @utc.getUTCSeconds()
+        getUTCMilliseconds: -> @utc.getUTCMilliseconds()
+
         getTime: -> @utc.getTime()
+
+        getTimezoneOffset: -> 
+            console.log @offset, @save
+
+            base = (@offset.hours * 60) + @offset.mins
+
+            dst = (@save.hours * 60) + @save.mins
+
+            unless @offset.negative
+                base = -base
+
+            base - dst
 
 
         toISOString: -> @wallTime.toISOString()
+        toUTCString: -> @wallTime.toUTCString()
 
         toDateString: ->
             utcStr = @wallTime.toUTCString()

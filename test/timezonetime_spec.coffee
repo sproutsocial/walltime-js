@@ -17,6 +17,8 @@ describe "timezonetime", ->
     Feb12_2013_1433 = 1360701207000
     Feb12_2013_1714 = 1360710867000
     Feb11_2013_2333 = 1360647207000
+
+    Mar14_2013_800 = 1363266000000
     
 
     readTimezoneFile = (file = "./test/rsrc/full/northamerica", next) ->
@@ -45,10 +47,25 @@ describe "timezonetime", ->
 
         WallTime.setTimeZone "America/Chicago"
 
-    it ".toISOString() works", ->
+    it "implements toISOString()", ->
         date = WallTime.UTCToWallTime Feb12_2013_1433
 
         date.toISOString().should.equal "2013-02-12T14:33:27.000Z"
+
+    it "implements getTimezoneOffset()", ->
+        date = WallTime.UTCToWallTime Feb12_2013_1433
+
+        # 360 base offset
+        expect = 360
+
+        date.getTimezoneOffset().should.equal expect
+
+        date = WallTime.UTCToWallTime Mar14_2013_800
+
+        # 360 base offset - 60 daylight savings
+        expect = 300
+
+        date.getTimezoneOffset().should.equal expect, "dst"
 
     it "sets year correctly", ->
         date = WallTime.UTCToWallTime Feb12_2013_1433

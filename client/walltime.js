@@ -349,7 +349,7 @@
         this.zone = zone;
         this.save = save;
         this.offset = this.zone.offset;
-        this.wallTime = helpers.Time.UTCToWallTime(this.utc, this.zone.offset, this.save);
+        this.wallTime = helpers.Time.UTCToWallTime(this.utc, this.offset, this.save);
       }
 
       TimeZoneTime.prototype.getFullYear = function() {
@@ -384,12 +384,59 @@
         return this.wallTime.getUTCMilliseconds();
       };
 
+      TimeZoneTime.prototype.getUTCFullYear = function() {
+        return this.utc.getUTCFullYear();
+      };
+
+      TimeZoneTime.prototype.getUTCMonth = function() {
+        return this.utc.getUTCMonth();
+      };
+
+      TimeZoneTime.prototype.getUTCDate = function() {
+        return this.utc.getUTCDate();
+      };
+
+      TimeZoneTime.prototype.getUTCDay = function() {
+        return this.utc.getUTCDay();
+      };
+
+      TimeZoneTime.prototype.getUTCHours = function() {
+        return this.utc.getUTCHours();
+      };
+
+      TimeZoneTime.prototype.getUTCMinutes = function() {
+        return this.utc.getUTCMinutes();
+      };
+
+      TimeZoneTime.prototype.getUTCSeconds = function() {
+        return this.utc.getUTCSeconds();
+      };
+
+      TimeZoneTime.prototype.getUTCMilliseconds = function() {
+        return this.utc.getUTCMilliseconds();
+      };
+
       TimeZoneTime.prototype.getTime = function() {
         return this.utc.getTime();
       };
 
+      TimeZoneTime.prototype.getTimezoneOffset = function() {
+        var base, dst;
+        console.log(this.offset, this.save);
+        base = (this.offset.hours * 60) + this.offset.mins;
+        dst = (this.save.hours * 60) + this.save.mins;
+        if (!this.offset.negative) {
+          base = -base;
+        }
+        return base - dst;
+      };
+
       TimeZoneTime.prototype.toISOString = function() {
         return this.wallTime.toISOString();
+      };
+
+      TimeZoneTime.prototype.toUTCString = function() {
+        return this.wallTime.toUTCString();
       };
 
       TimeZoneTime.prototype.toDateString = function() {
