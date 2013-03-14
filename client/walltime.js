@@ -422,7 +422,6 @@
 
       TimeZoneTime.prototype.getTimezoneOffset = function() {
         var base, dst;
-        console.log(this.offset, this.save);
         base = (this.offset.hours * 60) + this.offset.mins;
         dst = (this.save.hours * 60) + this.save.mins;
         if (!this.offset.negative) {
@@ -1259,7 +1258,6 @@
       function WallTime() {}
 
       WallTime.prototype.init = function(rules, zones) {
-        var currZone, newRules, newZone, newZones, r, ruleName, ruleVals, z, zoneName, zoneVals, _i, _len;
         if (rules == null) {
           rules = {};
         }
@@ -1267,6 +1265,21 @@
           zones = {};
         }
         this.zones = {};
+        this.rules = {};
+        this.addRulesZones(rules, zones);
+        this.zoneSet = null;
+        this.timeZoneName = null;
+        return this.doneInit = true;
+      };
+
+      WallTime.prototype.addRulesZones = function(rules, zones) {
+        var currZone, newRules, newZone, newZones, r, ruleName, ruleVals, z, zoneName, zoneVals, _i, _len, _results;
+        if (rules == null) {
+          rules = {};
+        }
+        if (zones == null) {
+          zones = {};
+        }
         currZone = null;
         for (zoneName in zones) {
           if (!__hasProp.call(zones, zoneName)) continue;
@@ -1281,24 +1294,22 @@
           }
           this.zones[zoneName] = newZones;
         }
-        this.rules = {};
+        _results = [];
         for (ruleName in rules) {
           if (!__hasProp.call(rules, ruleName)) continue;
           ruleVals = rules[ruleName];
           newRules = (function() {
-            var _j, _len1, _results;
-            _results = [];
+            var _j, _len1, _results1;
+            _results1 = [];
             for (_j = 0, _len1 = ruleVals.length; _j < _len1; _j++) {
               r = ruleVals[_j];
-              _results.push(new rule.Rule(r.name, r._from, r._to, r.type, r["in"], r.on, r.at, r._save, r.letter));
+              _results1.push(new rule.Rule(r.name, r._from, r._to, r.type, r["in"], r.on, r.at, r._save, r.letter));
             }
-            return _results;
+            return _results1;
           })();
-          this.rules[ruleName] = newRules;
+          _results.push(this.rules[ruleName] = newRules);
         }
-        this.zoneSet = null;
-        this.timeZoneName = null;
-        return this.doneInit = true;
+        return _results;
       };
 
       WallTime.prototype.setTimeZone = function(name) {
