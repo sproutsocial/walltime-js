@@ -523,7 +523,7 @@
     req_helpers = require("./helpers");
     module.exports = init(req_helpers);
   } else if (typeof define !== 'undefined') {
-    define('olson/timezonetime',["olson/helpers"], "timezonetime", init);
+    define('olson/timezonetime',["olson/helpers"], init);
   } else {
     this.WallTime || (this.WallTime = {});
     this.WallTime.TimeZoneTime = init(this.WallTime.helpers);
