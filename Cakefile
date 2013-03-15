@@ -37,7 +37,7 @@ allowedFiles = [
 log = (message, color = green, explanation = '') ->
   console.log color + message + reset + ' ' + explanation
 
-clientFiles = ['./lib/walltime', './lib/olson/helpers', './lib/olson/timezonetime', './lib/olson/rule', './lib/olson/zone']
+clientFiles = ['./lib/walltime.coffee', './lib/olson/helpers.coffee', './lib/olson/timezonetime.coffee', './lib/olson/rule.coffee', './lib/olson/zone.coffee']
 
 # Compiles necessary client side files for requireJS optimizer
 compileCoffeeFiles = (callback) ->
