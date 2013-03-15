@@ -10,7 +10,6 @@ config =
     out: "./client/walltime.js"
     optimize: "none"
 
-
 module.exports = 
     build: (callback, settings) ->
         for own key, val of settings
