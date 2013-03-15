@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta charset="utf-8">
+	<title>Walltime RequireJS Test</title>
+
+  </head>
+  <body>
+  	<div id="result"></div>
+	
+	<script type="text/javascript" src="../../client/walltime-data.js"></script>
+	<script type="text/javascript" src="require.js"></script>
+	<script>
+
+		require.config({
+			paths: {
+				walltime: "../../client/walltime"
+			}
+		});
+
+		require(["walltime"], function(WallTime) {
+
+			var exists = WallTime !== undefined,
+				resultEl = document.getElementById("result"),
+				resultText = exists ? "Exists" : "Does not exist";
+
+			resultEl.innerHTML = resultText;
+		});
+	</script>
+  </body>
+</html>
