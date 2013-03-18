@@ -2,7 +2,6 @@ fs            = require 'fs'
 {print}       = require 'util'
 {spawn, exec} = require 'child_process'
 
-async = require "async"
 uglifyJS = require "uglify-js"
 
 clientBuilder = require './client/build'
