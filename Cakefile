@@ -1,7 +1,10 @@
 fs            = require 'fs'
 {print}       = require 'util'
 {spawn, exec} = require 'child_process'
+
+async = require "async"
 uglifyJS = require "uglify-js"
+
 clientBuilder = require './client/build'
 olsonFiles = require "./lib/olson"
 
@@ -137,9 +140,11 @@ buildDataFile = (opts, callback) ->
     rules = {}
     zones = {}
     # For each parsed file that we want to build data for
-    for own fileName, rulesZones of files when allFiles or filesToProcess[fileName]
+    for own fileName, rulesZones of files
+      continue unless allFiles or filesToProcess[fileName]
+      
       # Skip the indices if files is an array
-      continue if !isNaN(parseInt(fileName, 10))
+      continue unless isNaN(parseInt(fileName, 10))
 
       # Add the zones to our existing zones
       for own zoneName, zoneVals of rulesZones.zones
@@ -215,12 +220,12 @@ task 'individual', (opts) ->
     for own fileName, rulesZones of files
       for own zoneName, zoneVals of rulesZones.zones
         nameSafe = zoneName.replace(slashRegex, "-").replace(spaceRegex, "+")
-        fileName = opts.format.replace("%s", nameSafe)
+        outputName = opts.format.replace("%s", nameSafe)
         fileOpts.push
           olsonfiles: olsonFilePath
           filename: [fileName]
           zonename: [zoneName]
-          outputname: "./client/individual/#{fileName}.js"
+          outputname: "./client/individual/#{outputName}.js"
 
     currFile = 0
     processFile = () ->
