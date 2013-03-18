@@ -1,6 +1,6 @@
 {
   "name": "walltime-js",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "A javascript library for easily translating a UTC time to a \"Wall Time\" for a particular time zone and back.",
   "main": "index.js",
   "scripts": {

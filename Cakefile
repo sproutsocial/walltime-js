@@ -103,6 +103,7 @@ option "-f", "--filename [OLSON_FILE_NAME*]", "Specify which specific OLSON file
 option "-z", "--zonename [OLSON_ZONE_NAME*]", "Specify a specific zone to include"
 option "-i", "--olsonfiles [OLSON_FILE_LOCATION]", "Specify the olson file location"
 option "-o", "--outputname [FILE_NAME]", "Specify the output file name"
+option "-r", "--format [FILE_NAME_FORMAT]", "Specify a format string for individual data files; default is 'walltime-data[%s]'"
 
 buildDataFile = (opts, callback) ->
   opts.filename or= []
@@ -204,6 +205,7 @@ task 'data', "Build the client side olson data package (defaults to all timezone
   buildDataFile opts
 
 task 'individual', (opts) ->
+  opts.format or= "walltime-data[%s]"
   olsonFilePath = process.cwd() + "/client/olson/"
   slashRegex = new RegExp "\/", "g"
   spaceRegex = new RegExp " ", "g"
@@ -213,11 +215,12 @@ task 'individual', (opts) ->
     for own fileName, rulesZones of files
       for own zoneName, zoneVals of rulesZones.zones
         nameSafe = zoneName.replace(slashRegex, "-").replace(spaceRegex, "+")
+        fileName = opts.format.replace("%s", nameSafe)
         fileOpts.push
           olsonfiles: olsonFilePath
           filename: [fileName]
           zonename: [zoneName]
-          outputname: "./client/individual/walltime-data[#{nameSafe}].js"
+          outputname: "./client/individual/#{fileName}.js"
 
     currFile = 0
     processFile = () ->
