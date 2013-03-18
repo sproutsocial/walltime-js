@@ -52,6 +52,9 @@ To build data for `America/Chicago` only
 To build individual data files for each time zone
 
     cake individual
+    
+    # Optionally, pass a format parameter
+    cake --format "walltime-data_%s" individual # Becomes `walltime-data_America-Chicago.min.js`
 
 By default the files are saved to `./client/walltime.js` etc.
 
