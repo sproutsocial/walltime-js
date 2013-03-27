@@ -112,7 +112,7 @@ buildDataFile = (opts, callback) ->
   opts.filename or= []
   opts.zonename or= []
   opts.outputname or= "./client/walltime-data.js"
-  opts.minyear = opts.minyear && parseInt(opts.minyear, 10) || -9999
+  opts.minyear = parseInt opts.minyear || "-271821", 10
 
   allFiles = true
   filesToProcess = {}
