@@ -9,30 +9,9 @@ init = (helpers, TimeZoneTime) ->
 
     # Handles a "lastSun" type of value for the on field of a rule
     class LastOnFieldHandler
-        applies: (str) -> str[0..3] == "last"
+        applies: helpers.Months.IsLastDayOfMonthRule
         parseDate: (str, year, month, qualifier, gmtOffset, daylightOffset) ->
-            # Get the last day with a matching name
-            dayName = str[4..]
-            # TODO: Always has a capital first letter?
-            dayIndex = helpers.Days.DayIndex dayName
-
-            # To get the last day of the month we set the date to the first day of next month, and move back one day.
-            
-            # Set the date to the first day of the next month
-            if month < 11
-                lastDay = helpers.Time.MakeDateFromParts year, (month + 1)
-            else 
-                # Account for going over to the next year.
-                lastDay = helpers.Time.MakeDateFromParts year + 1, 0
-
-            # Move back one day to the last day of the current month.
-            lastDay = helpers.Days.AddToDate lastDay, -1
-
-            # Iterate backward until our dayIndex matches the last days index
-            while lastDay.getUTCDay() != dayIndex
-                lastDay = helpers.Days.AddToDate lastDay, -1
-            
-            return lastDay.getUTCDate()
+            helpers.Months.LastDayOfMonthRule str, year, month
 
     # Handles a "Sun>=8" type of value for the on field of a rule
     class CompareOnFieldHandler

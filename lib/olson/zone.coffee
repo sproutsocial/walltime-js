@@ -23,6 +23,8 @@ init = (helpers, rule, TimeZoneTime) ->
             # Example: 1936 Mar 1 2:00
             # Example: 1883 Nov 18 12:14:48
             # Chihuahua: 1998 Apr Sun>=1 3:00
+            # Asia/Baku: 1992 Sep lastSat 23:00
+            
             [year, monthName, day, time] = til.split " "
             [neg, h, mi, s] = if time then helpers.Time.ParseGMTOffset time else [false, 0, 0, 0]
 
@@ -41,6 +43,9 @@ init = (helpers, rule, TimeZoneTime) ->
             # Check for day ranges: Sun>=1
             if helpers.Months.IsDayOfMonthRule day
                 day = helpers.Months.DayOfMonthByRule day, year, month
+            # Check for day ranges: lastSat
+            else if helpers.Months.IsLastDayOfMonthRule day
+                day = helpers.Months.LastDayOfMonthRule day, year, month
             else
                 day = parseInt day, 10
 

@@ -11,6 +11,7 @@ olsonFiles = require "./lib/olson"
 bold  = '\x1B[0;1m'
 red   = '\x1B[0;31m'
 green = '\x1B[0;32m'
+yellow = '\x1B[0;33m'
 reset = '\x1B[0m'
 
 pkg = JSON.parse fs.readFileSync('./package.json')
@@ -112,8 +113,8 @@ buildDataFile = (opts, callback) ->
   opts.filename or= []
   opts.zonename or= []
   opts.outputname or= "./client/walltime-data.js"
-  opts.minyear = parseInt opts.minyear || "-271821", 10
-
+  opts.minyear = parseInt opts.minyear || "-271822", 10
+  
   allFiles = true
   filesToProcess = {}
   if opts.filename.length != 0
@@ -152,10 +153,16 @@ buildDataFile = (opts, callback) ->
         zones[zoneName] or= []
         saveZones = []
         for z in zoneVals.zones
-          saveZones.push(z) if z.range.end.getFullYear() >= opts.minyear
+          
+          if z.range.end.getFullYear() >= opts.minyear
+            saveZones.push z
+          else
+            log "Filtered #{z.name}: ", yellow, "#{z.range.end.getFullYear()}"
+
           # Remove extra fields from zones
           delete z.range
           delete z.offset
+        
         zones[zoneName].push.apply zones[zoneName], saveZones
 
       # Add the rules to our existing rules
@@ -163,7 +170,10 @@ buildDataFile = (opts, callback) ->
         rules[ruleName] or= []
         saveVals = []
         for r in ruleVals
-          saveVals.push(r) if r.to >= opts.minyear
+          if r.to >= opts.minyear
+            saveVals.push(r) 
+          else
+            log "Filtered #{ruleName}: ", yellow, "#{r.to}"
           # Remove extra fields from rules
           delete r.from
           delete r.to
