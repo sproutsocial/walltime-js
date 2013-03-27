@@ -106,11 +106,13 @@ option "-z", "--zonename [OLSON_ZONE_NAME*]", "Specify a specific zone to includ
 option "-i", "--olsonfiles [OLSON_FILE_LOCATION]", "Specify the olson file location"
 option "-o", "--outputname [FILE_NAME]", "Specify the output file name"
 option "-r", "--format [FILE_NAME_FORMAT]", "Specify a format string for individual data files; default is 'walltime-data[%s]'"
+option "-y", "--minyear [YEAR]", "Truncate every rule that expires before the given year"
 
 buildDataFile = (opts, callback) ->
   opts.filename or= []
   opts.zonename or= []
   opts.outputname or= "./client/walltime-data.js"
+  opts.minyear = parseInt opts.minyear || "-271821", 10
 
   allFiles = true
   filesToProcess = {}
@@ -148,22 +150,26 @@ buildDataFile = (opts, callback) ->
       # Add the zones to our existing zones
       for own zoneName, zoneVals of rulesZones.zones
         zones[zoneName] or= []
-        # Remove extra fields from zones
+        saveZones = []
         for z in zoneVals.zones
+          saveZones.push(z) if z.range.end.getFullYear() >= opts.minyear
+          # Remove extra fields from zones
           delete z.range
           delete z.offset
-        zones[zoneName].push.apply zones[zoneName], zoneVals.zones
+        zones[zoneName].push.apply zones[zoneName], saveZones
 
       # Add the rules to our existing rules
       for own ruleName, ruleVals of rulesZones.rules
         rules[ruleName] or= []
-        # Remove extra fields from rules
+        saveVals = []
         for r in ruleVals
+          saveVals.push(r) if r.to >= opts.minyear
+          # Remove extra fields from rules
           delete r.from
           delete r.to
           delete r.save
           delete r.isMax
-        rules[ruleName].push.apply rules[ruleName], ruleVals
+        rules[ruleName].push.apply rules[ruleName], saveVals
       
       log "Processed File: ", green, fileName
 
@@ -224,6 +230,7 @@ task 'individual', (opts) ->
           olsonfiles: olsonFilePath
           filename: [fileName]
           zonename: [zoneName]
+          minyear: opts.minyear
           outputname: "./client/individual/#{outputName}.js"
 
     currFile = 0
