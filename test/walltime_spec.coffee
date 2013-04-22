@@ -545,10 +545,7 @@ describe "walltime-js", ->
             local = WallTime.UTCToWallTime new Date(), "America/Regina"
 
             local.zone.name.should.equal("America/Regina")
-
-            #console.log(WallTime)
-            console.log(WallTime.zones['America/Regina'])
-
+            
         # Before the DST Transition
         it "can translate March 28 2012, 8:00 AM correctly", ->
 
