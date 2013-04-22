@@ -511,3 +511,45 @@ describe "walltime-js", ->
         # After the DST Regression beginning of year
         it "can translate January 4 2013, 8:00 AM correctly", ->
             testTimestamp Jan4_8AM_2013, 2013, 0, 4, 8, 0
+
+    describe "UTCToWallTime (America/Regina)", ->
+        sixOffset = 
+            negative: true
+            hours: 6
+            mins: 0
+            secs: 0
+
+        Mar28_8AM_2012 = helpers.Time.MakeDateFromParts 2012, 2, 28, 8
+        Mar28_8AM_2012 = helpers.Time.ApplyOffset Mar28_8AM_2012, sixOffset
+        
+        testTimestamp = (ts, yr, month, day, hr, min) ->
+            result = WallTime.UTCToWallTime ts
+
+            result.getFullYear().should.equal yr, "Year"
+            result.getMonth().should.equal month, "Month"
+            result.getDate().should.equal day, "Day"
+            result.getHours().should.equal hr, "Hour"
+            result.getMinutes().should.equal min, "Minute"
+
+        before (next) ->
+            readTimezoneFile "./test/rsrc/full/northamerica", next
+
+        beforeEach ->
+            WallTime.init rules, zones
+
+            WallTime.setTimeZone "America/Regina"
+
+        it "can set timezone to America/Regina", ->
+            WallTime.timeZoneName.should.equal "America/Regina"
+
+            local = WallTime.UTCToWallTime new Date(), "America/Regina"
+
+            local.zone.name.should.equal("America/Regina")
+
+            #console.log(WallTime)
+            console.log(WallTime.zones['America/Regina'])
+
+        # Before the DST Transition
+        it "can translate March 28 2012, 8:00 AM correctly", ->
+
+            testTimestamp Mar28_8AM_2012, 2012, 2, 28, 8, 0

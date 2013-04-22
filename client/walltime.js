@@ -36,6 +36,9 @@
     IsDayOfMonthRule: function(str) {
       return str.indexOf(">") > -1 || str.indexOf("<") > -1 || str.indexOf("=") > -1;
     },
+    IsLastDayOfMonthRule: function(str) {
+      return str.slice(0, 4) === "last";
+    },
     DayOfMonthByRule: function(str, year, month) {
       var compareFunc, compares, dateIndex, dayIndex, dayName, ruleParse, testDate, testPart, _ref;
       ruleParse = this.CompareRuleMatch.exec(str);
@@ -74,6 +77,21 @@
         testDate = helpers.Days.AddToDate(testDate, 1);
       }
       return testDate.getUTCDate();
+    },
+    LastDayOfMonthRule: function(str, year, month) {
+      var dayIndex, dayName, lastDay;
+      dayName = str.slice(4);
+      dayIndex = helpers.Days.DayIndex(dayName);
+      if (month < 11) {
+        lastDay = helpers.Time.MakeDateFromParts(year, month + 1);
+      } else {
+        lastDay = helpers.Time.MakeDateFromParts(year + 1, 0);
+      }
+      lastDay = helpers.Days.AddToDate(lastDay, -1);
+      while (lastDay.getUTCDay() !== dayIndex) {
+        lastDay = helpers.Days.AddToDate(lastDay, -1);
+      }
+      return lastDay.getUTCDate();
     }
   };
 
@@ -557,24 +575,10 @@
 
       function LastOnFieldHandler() {}
 
-      LastOnFieldHandler.prototype.applies = function(str) {
-        return str.slice(0, 4) === "last";
-      };
+      LastOnFieldHandler.prototype.applies = helpers.Months.IsLastDayOfMonthRule;
 
       LastOnFieldHandler.prototype.parseDate = function(str, year, month, qualifier, gmtOffset, daylightOffset) {
-        var dayIndex, dayName, lastDay;
-        dayName = str.slice(4);
-        dayIndex = helpers.Days.DayIndex(dayName);
-        if (month < 11) {
-          lastDay = helpers.Time.MakeDateFromParts(year, month + 1);
-        } else {
-          lastDay = helpers.Time.MakeDateFromParts(year + 1, 0);
-        }
-        lastDay = helpers.Days.AddToDate(lastDay, -1);
-        while (lastDay.getUTCDay() !== dayIndex) {
-          lastDay = helpers.Days.AddToDate(lastDay, -1);
-        }
-        return lastDay.getUTCDate();
+        return helpers.Months.LastDayOfMonthRule(str, year, month);
       };
 
       return LastOnFieldHandler;
@@ -1048,6 +1052,8 @@
         day || (day = "1");
         if (helpers.Months.IsDayOfMonthRule(day)) {
           day = helpers.Months.DayOfMonthByRule(day, year, month);
+        } else if (helpers.Months.IsLastDayOfMonthRule(day)) {
+          day = helpers.Months.LastDayOfMonthRule(day, year, month);
         } else {
           day = parseInt(day, 10);
         }

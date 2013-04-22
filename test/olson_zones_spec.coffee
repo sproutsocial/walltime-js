@@ -36,7 +36,10 @@ describe "Olson Zones", ->
         new OlsonZone("America/Chihuahua", "-7:00:00", "-", "M%sT", "1998 Apr Sun>=1 3:00")
 
     makeLastRangeZone = ->
-        new OlsonZone("Asia/Baku", "3:00", "RussiaAsia", "AZ%sT", "1992 Sep lastSat 23:00")        
+        new OlsonZone("Asia/Baku", "3:00", "RussiaAsia", "AZ%sT", "1992 Sep lastSat 23:00")
+
+    makeReginaZone = ->
+        new OlsonZone("America/Regina", "-7:00", "Regina", "M%sT", "1960 Apr lastSun 2:00")
 
     it "can set the begin and end range correctly for explicit end", ->
         zone = makeZone()
@@ -73,6 +76,20 @@ describe "Olson Zones", ->
         expect = helpers.Time.ApplyOffset expect, 
             negative: false
             hours: 3
+            mins: 0
+            secs: 0
+
+        expect = helpers.Time.MakeDateFromTimeStamp(expect.getTime() - 1)
+
+        zone.range.end.toUTCString().should.equal expect.toUTCString()
+
+    it "can process America/Regina zones", ->
+        zone = makeReginaZone()
+
+        expect = helpers.Time.MakeDateFromParts 1960, 3, 24, 2, 0
+        expect = helpers.Time.ApplyOffset expect, 
+            negative: true
+            hours: 7
             mins: 0
             secs: 0
 
