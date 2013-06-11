@@ -28,15 +28,17 @@ describe "timezonetime", ->
             should.exist result?.zones, "should have zones in result"
             should.exist result?.rules, "should have rules in result"
 
-            rules = JSON.parse(JSON.stringify(result.rules))
-            # zones = JSON.parse(JSON.stringify(result.zones))
-
+            for own ruleName, ruleVal of result.rules
+                rules[ruleName] ||= []
+                rules[ruleName] = rules[ruleName].concat ruleVal
+            
             zones[zoneName] = zoneVal.zones for own zoneName, zoneVal of result.zones
 
             do next
 
     before (next) ->
-        readTimezoneFile "./test/rsrc/full/northamerica", next
+        readTimezoneFile "./test/rsrc/full/northamerica", ->
+            readTimezoneFile "./test/rsrc/full/etcetera", next
 
     beforeEach ->
         WallTime.rules = undefined
@@ -47,10 +49,15 @@ describe "timezonetime", ->
 
         WallTime.setTimeZone "America/Chicago"
 
-    it "implements toISOString()", ->
+    it "implements toISOString() for non UTC times", ->
         date = WallTime.UTCToWallTime Feb12_2013_1433
 
-        date.toISOString().should.equal "2013-02-12T14:33:27.000Z"
+        date.toISOString().should.equal "2013-02-12T20:33:27.000Z"
+
+    it "implements toISOString() for UTC times", ->
+        date = WallTime.UTCToWallTime Feb12_2013_1433, "Etc/UTC"
+
+        date.toISOString().should.equal "2013-02-12T20:33:27.000Z"
 
     it "implements getTimezoneOffset()", ->
         date = WallTime.UTCToWallTime Feb12_2013_1433

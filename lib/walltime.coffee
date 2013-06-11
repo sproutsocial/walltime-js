@@ -86,19 +86,19 @@ if typeof window == 'undefined'
 else if typeof define != 'undefined'
     define ['olson/helpers', 'olson/rule', 'olson/zone'], init
 else
-    @.WallTime or= {}
+    @WallTime or= {}
 
     # Some trickery here because we want a clean window.WallTime api,
-    # But still have to keep the @.WallTime.helpers etc.
-    api = init(@.WallTime.helpers, @.WallTime.rule, @.WallTime.zone)
-    for own key,val of @.WallTime
+    # But still have to keep the @WallTime.helpers etc.
+    api = init(@WallTime.helpers, @WallTime.rule, @WallTime.zone)
+    for own key,val of @WallTime
         api[key] = val
 
-    @.WallTime = api
+    @WallTime = api
 
     # Check for and initialize with the passed in data.
-    if @.WallTime.autoinit and @.WallTime.data?.rules and @.WallTime.data?.zones
-        @.WallTime.init @.WallTime.data.rules, @.WallTime.data.zones
+    if @WallTime.autoinit and @WallTime.data?.rules and @WallTime.data?.zones
+        @WallTime.init @WallTime.data.rules, @WallTime.data.zones
 
 
 
