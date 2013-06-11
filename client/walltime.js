@@ -449,7 +449,7 @@
       };
 
       TimeZoneTime.prototype.toISOString = function() {
-        return this.wallTime.toISOString();
+        return this.utc.toISOString();
       };
 
       TimeZoneTime.prototype.toUTCString = function() {
@@ -685,7 +685,7 @@
       function RuleSet(rules, timeZone) {
         var beginYears, commonUpdateYearEnds, endYears, max, min, rule, _i, _len, _ref,
           _this = this;
-        this.rules = rules;
+        this.rules = rules != null ? rules : [];
         this.timeZone = timeZone;
         min = null;
         max = null;
