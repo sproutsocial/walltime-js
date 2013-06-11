@@ -93,7 +93,7 @@ init = (helpers, TimeZoneTime) ->
             helpers.Time.ParseTime atStr
         
     class RuleSet
-        constructor: (@rules, @timeZone) ->
+        constructor: (@rules = [], @timeZone) ->
             # Update the rules offsets
             min = null
             max = null

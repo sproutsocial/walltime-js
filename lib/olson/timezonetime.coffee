@@ -39,8 +39,8 @@ init = (helpers) ->
 
             base - dst
 
-
-        toISOString: -> @wallTime.toISOString()
+        toISOString: -> @utc.toISOString()
+            
         toUTCString: -> @wallTime.toUTCString()
 
         toDateString: ->
