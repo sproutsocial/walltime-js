@@ -4,7 +4,7 @@
   "description": "A javascript library for easily translating a UTC time to a \"Wall Time\" for a particular time zone and back.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "grunt test"
   },
   "repository": {
     "type": "git",
@@ -36,6 +36,8 @@
     "grunt-contrib-clean": "~0.4.1",
     "grunt-bump": "0.0.7",
     "grunt-contrib-compress": "~0.5.2",
-    "grunt-contrib-concat": "~0.3.0"
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-coffeelint": "0.0.7",
+    "grunt-jshint2": "~0.1.2"
   }
 }

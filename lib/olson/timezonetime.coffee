@@ -4,7 +4,7 @@ init = (helpers) ->
     
     class TimeZoneTime
         constructor: (@utc, @zone, @save) ->
-            @offset = @zone.offset        
+            @offset = @zone.offset
             @wallTime = helpers.Time.UTCToWallTime @utc, @offset, @save
 
         # Standard Date overrides
@@ -29,7 +29,7 @@ init = (helpers) ->
 
         getTime: -> @utc.getTime()
 
-        getTimezoneOffset: -> 
+        getTimezoneOffset: ->
             base = (@offset.hours * 60) + @offset.mins
 
             dst = (@save.hours * 60) + @save.mins
@@ -94,7 +94,7 @@ init = (helpers) ->
             @wallTime.setUTCMilliseconds ms
             @_updateUTC()
 
-        # Updates to 
+        # Updates to
         _updateUTC: ->
             @utc = helpers.Time.WallTimeToUTC @offset, @save, @getFullYear(), @getMonth(), @getDate(), @getHours(), @getMinutes(), @getSeconds(), @getMilliseconds()
 

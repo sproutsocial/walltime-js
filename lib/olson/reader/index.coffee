@@ -82,7 +82,7 @@ class OlsonReader
                 # Add to the rules by name.
                 rules[rule.name] = rules[rule.name] or []
                 rules[rule.name].push rule
-            else 
+            else
                 # Reset the current zone if this is a new zone declaration
                 inZone = null if @_isNewZoneDeclaration curr
                 zone = null

@@ -78,6 +78,27 @@ module.exports = function (grunt) {
             }
         },
 
+        coffeelint: {
+            options: {
+                max_line_length: {
+                    level: "ignore"
+                },
+                indentation: {
+                    value: 4
+                }
+            },
+
+            lib: ["lib/**/*.coffee"]
+        },
+
+        jshint2: {
+            options: {
+                jshintrc: ".jshintrc"
+            },
+
+            all: ["Gruntfile.js", "index.js"]
+        },
+
         // Run mocha unit tests
         simplemocha: {
             options: {
@@ -171,14 +192,14 @@ module.exports = function (grunt) {
         "compress:individual-min"
     ]);
 
-    grunt.registerTask("test", ["simplemocha:all"]);
+    grunt.registerTask("test", ["coffeelint:lib", "jshint2:all", "simplemocha:all"]);
 
     grunt.registerTask("release", [
         "test",
         "bump",
         "lib",
         "data",
-        "individual",
+        "individual"
     ]);
 
     grunt.registerTask("default", function () {
@@ -190,6 +211,6 @@ module.exports = function (grunt) {
         grunt.log.writeln("grunt individual");
         grunt.log.writeln(" - build data files");
         grunt.log.writeln("grunt test");
-        grunt.log.writeln(" - run unit tests");
+        grunt.log.writeln(" - run unit tests and lint code");
     });
 };

@@ -1,12 +1,12 @@
 
 # A shim for IE8+9 Array.indexOf
 Array::indexOf or= (item) ->
-  for x, i in this
-    return i if x is item
-  return -1
+    for x, i in this
+        return i if x is item
+    return -1
 
 # Some helpers for going between day names and indices.
-Days = 
+Days =
     DayShortNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     DayIndex: (name) ->
         @DayShortNames.indexOf name
@@ -16,7 +16,7 @@ Days =
         Time.MakeDateFromTimeStamp (dt.getTime() + (days * Milliseconds.inDay))
 
 # Some helpers for going between month names and indices
-Months = 
+Months =
     MonthsShortNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     CompareRuleMatch: new RegExp "([a-zA-Z]*)([\\<\\>]?=)([0-9]*)"
     MonthIndex: (shortName) ->
@@ -72,7 +72,7 @@ Months =
         # Set the date to the first day of the next month
         if month < 11
             lastDay = helpers.Time.MakeDateFromParts year, (month + 1)
-        else 
+        else
             # Account for going over to the next year.
             lastDay = helpers.Time.MakeDateFromParts year + 1, 0
 
@@ -85,14 +85,14 @@ Months =
         
         return lastDay.getUTCDate()
 
-Milliseconds = 
+Milliseconds =
     inDay:    86400000
     inHour:   3600000
     inMinute: 60000
     inSecond: 1000
 
 # Some helpers for dealing with time values
-Time = 
+Time =
     Add: (dt, hours = 0, mins = 0, secs = 0) ->
         newTs = dt.getTime() + (hours * Milliseconds.inHour) + (mins * Milliseconds.inMinute) + (secs * Milliseconds.inSecond)
         @MakeDateFromTimeStamp newTs
@@ -169,7 +169,7 @@ Time =
                 # Standard Time, apply gmt offset only
                 endTime = @UTCToStandardTime endTime, offset
             else
-                # already in utc time, so nothing to do.        
+                # already in utc time, so nothing to do.
 
         endTime
 
@@ -183,7 +183,7 @@ Time =
                 # Standard Time, apply gmt offset only
                 endTime = @StandardTimeToUTC offset, endTime
             else
-                # already in utc time, so nothing to do.      
+                # already in utc time, so nothing to do.
 
         endTime
 
@@ -200,7 +200,7 @@ Time =
     # Make a date from the passed in parts
     MakeDateFromParts: (y, m = 0, d = 1, h = 0, mi = 0, s = 0, ms = 0) ->
         if Date.UTC
-            return new Date(Date.UTC y, m, d, h, mi, s, ms)   
+            return new Date(Date.UTC y, m, d, h, mi, s, ms)
 
         # Handle browsers with no Date.UTC
         dt = new Date
@@ -229,7 +229,7 @@ Time =
         # Mon, 06 Dec -25410 00:00:00 GMT
         @MakeDateFromTimeStamp -10000000*86400000
 
-helpers = 
+helpers =
     Days: Days
     Months: Months
     Milliseconds: Milliseconds
