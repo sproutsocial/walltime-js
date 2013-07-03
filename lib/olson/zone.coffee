@@ -7,7 +7,7 @@ init = (helpers, rule, TimeZoneTime) ->
         constructor: (@name, @_offset, @_rule, @format, @_until, currZone) ->
 
             [isNegative, offsetHours, offsetMins, offsetSecs] = helpers.Time.ParseGMTOffset @_offset
-            @offset = 
+            @offset =
                 negative: isNegative
                 hours: offsetHours
                 mins: offsetMins
@@ -122,7 +122,7 @@ init = (helpers, rule, TimeZoneTime) ->
                 [hours, mins] = helpers.Time.ParseTime @_rule
 
                 makeAmbigZone = (begin) ->
-                    ambigZone = 
+                    ambigZone =
                         begin: @range.begin
                         end: helpers.Time.ApplySave(@range.begin, { hours: hours, mins: mins })
 
@@ -152,7 +152,7 @@ init = (helpers, rule, TimeZoneTime) ->
             # Set a name from the passed in zones or default to ""
             if @zones.length > 0
                 @name = @zones[0].name
-            else 
+            else
                 @name = ""
 
             # TODO: Does not check for consistent names on load?
@@ -213,7 +213,7 @@ init = (helpers, rule, TimeZoneTime) ->
             applicable.IsAmbiguous dt, @getRulesNamed
 
 
-    lib = 
+    lib =
         Zone: Zone
         ZoneSet: ZoneSet
 

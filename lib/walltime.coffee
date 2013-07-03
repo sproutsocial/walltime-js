@@ -1,5 +1,5 @@
 
-init = (helpers, rule, zone) ->    
+init = (helpers, rule, zone) ->
 
     class WallTime
 
