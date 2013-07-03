@@ -39,7 +39,7 @@ init = (helpers, TimeZoneTime) ->
             @to = toYear
 
             [saveHour, saveMinute] = @_parseTime @_save
-            @save = 
+            @save =
                 hours: saveHour
                 mins: saveMinute
 
@@ -70,7 +70,7 @@ init = (helpers, TimeZoneTime) ->
 
             @onUTC = helpers.Time.QualifiedTimeToUTC @onUTC, @atQualifier, offset, => getPrevSave(@)
             
-            @onSort = "#{toMonth}-#{toDay}-#{@onUTC.getUTCHours()}-#{@onUTC.getUTCMinutes()}"     
+            @onSort = "#{toMonth}-#{toDay}-#{@onUTC.getUTCHours()}-#{@onUTC.getUTCMinutes()}"
 
         appliesToUTC: (dt) ->
             @fromUTC <= dt <= @toUTC
@@ -124,7 +124,7 @@ init = (helpers, TimeZoneTime) ->
                     continue if yearRules.length < 1
 
                     # We only care about the last rule that gets applied for the year
-                    # We need to sort here by the on time 
+                    # We need to sort here by the on time
                     # TODO: (kind of cheating by only sorting by month)
                     rules = @_sortRulesByOnTime rules
                     lastRule = yearRules.slice(-1)[0]
@@ -292,7 +292,7 @@ init = (helpers, TimeZoneTime) ->
             for rule in rules
                 rule.setOnUTC utcStd.getUTCFullYear(), @timeZone.offset, getPrevRuleSave
 
-            # Get rules that applied to 
+            # Get rules that applied to
             appliedRules = (rule for rule in rules when rule.onUTC.getTime() <= utcStd.getTime()-1)
 
             # Return false if no rules applied
@@ -314,7 +314,7 @@ init = (helpers, TimeZoneTime) ->
             springForward = totalMinutes.prev < totalMinutes.last
 
             makeAmbigRange = (begin, minutesOff) ->
-                ambigRange = 
+                ambigRange =
                     begin: helpers.Time.MakeDateFromTimeStamp begin.getTime() + 1
                     
                 ambigRange.end = helpers.Time.Add ambigRange.begin, 0, minutesOff
@@ -343,7 +343,7 @@ init = (helpers, TimeZoneTime) ->
             rules.sort (a, b) ->
                 (helpers.Months.MonthIndex a.in) - (helpers.Months.MonthIndex b.in)
 
-    lib = 
+    lib =
         Rule: Rule
         RuleSet: RuleSet
         OnFieldHandlers:

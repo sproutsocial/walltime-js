@@ -3,7 +3,7 @@ RuleLib = require "./rule"
 ZoneLib = require "./zone"
 TimeZoneTime = require "./timezonetime"
 
-module.exports = 
+module.exports =
     Days: helpers.Days
     Months: helpers.Months
     Time: helpers.Time
