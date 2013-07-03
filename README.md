@@ -27,48 +27,58 @@ To limit the size of WallTime.js, you should only use the data for the time zone
 
 By default, `walltime-data.js` contains `northamerica`, `europe` and `australasia`, which encompass most of the world, but is 479k (minified).  By narrowing it down to just `northamerica`, you could save 300k. Adding gzip compression could get you down as low as 16k.
 
-This project uses [Node.js](http://nodejs.org) and [CoffeeScript](http://coffeescript.org); go and install them if you don't have them.
-
 To get the latest Olson files
 
     git submodule init && git submodule update
 
 To build all the data for all the time zone files
 
-    cake data
+    grunt data
 
 To build data for `northamerica` only
 
-    cake -f northamerica data
+    grunt data --filename=northamerica
 
 To build data for `northamerica` and `europe`
 
-    cake -f northamerica -f europe data
+    grunt data --filename=northamerica,europe
 
 To build data for `America/Chicago` only
 
-    cake -f northamerica -z America/Chicago data
+    grunt data --filename=northamerica --zonename=America/Chicago
 
 To build individual data files for each time zone
 
-    cake individual
+    grunt individual
     
-    # Optionally, pass a format parameter
-    cake --format "walltime-data_%s" individual # Becomes `walltime-data_America-Chicago.min.js`
+    # Optionally, pass a format parameter for naming
+    grunt individual --format "walltime-data_%s" # Becomes `walltime-data_America-Chicago.min.js`
 
 By default the files are saved to `./client/walltime.js` etc.
 
 ## Development
 
+This project uses [Node.js](http://nodejs.org) and [Grunt](http://gruntjs.com).
+
 To get setup
 
     # Clone the repo
-    git clone https://github.com/sproutsocial/walltime-js.git
+    git clone https://github.com/sproutsocial/walltime-js.git && cd walltime-js
     # Install the dependencies
     npm install
 
-To run tests
+To run tests and lint source code
 
-    cake test
+    grunt test
 
 To make new tests, create a new spec coffee file in the test directory.
+
+## MIT License
+
+Copyright (c) 2013 Sprout Social, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
