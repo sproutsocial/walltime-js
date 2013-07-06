@@ -1,31 +1,46 @@
 <!DOCTYPE html>
 <html>
   <head>
-	<meta charset="utf-8">
-	<title>Walltime RequireJS Test</title>
-
+    <meta charset="utf-8">
+    <title>Walltime RequireJS Test</title>
+    <link rel="stylesheet" href="mocha.css" />
   </head>
   <body>
-  	<div id="result"></div>
-	
-	<script type="text/javascript" src="../../client/walltime-data.js"></script>
-	<script type="text/javascript" src="require.js"></script>
-	<script>
+    <div id="mocha"></div>
+    
+    <script type="text/javascript" src="../../client/walltime-data.js"></script>
+    <script type="text/javascript" src="require.js"></script>
+    <script>
 
-		require.config({
-			paths: {
-				walltime: "../../client/walltime"
-			}
-		});
+        require.config({
+            paths: {
+                walltime: "../../client/walltime"
+            },
 
-		require(["walltime"], function(WallTime) {
+            shim: {
+                mocha: {
+                    exports: 'mocha'
+                }
+            }
+        });
 
-			var exists = WallTime !== undefined,
-				resultEl = document.getElementById("result"),
-				resultText = exists ? "Exists" : "Does not exist";
+        require(["chai", "mocha", "walltime"], function(chai, mocha, WallTime) {
 
-			resultEl.innerHTML = resultText;
-		});
-	</script>
+            var should = chai.should();
+
+            mocha.setup('bdd');
+
+            describe("WallTime - RequireJS", function () {
+                it("exists", function () {
+                    should.exist(WallTime);
+                    should.exist(WallTime.init);
+                });
+            });
+
+            
+            if (window.mochaPhantomJS) mochaPhantomJS.run()
+            else mocha.run();
+        });
+    </script>
   </body>
 </html>

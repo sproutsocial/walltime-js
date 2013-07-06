@@ -34,6 +34,7 @@ module.exports = function (grunt) {
             }
         },
 
+        // Add the masthead information to each built file
         concat: {
             options: {
                 banner: grunt.file.read('masthead.tpl')
@@ -78,6 +79,7 @@ module.exports = function (grunt) {
             }
         },
 
+        // Lint coffee files (indendation and style consistency)
         coffeelint: {
             options: {
                 max_line_length: {
@@ -91,6 +93,7 @@ module.exports = function (grunt) {
             lib: ["lib/**/*.coffee"]
         },
 
+        // Lint the javascript files
         jshint2: {
             options: {
                 jshintrc: ".jshintrc"
@@ -110,14 +113,17 @@ module.exports = function (grunt) {
             all: ["test/*_spec.coffee"]
         },
 
+        // Build the big walltime-data.js file
         "walltime-data": {
             all: {}
         },
 
+        // Build the individual files; i.e. walltime-data[Africa-Cairo].js
         "walltime-individual": {
             all: {}
         },
 
+        // Verify that a data file has rules or zones
         "walltime-verify": {
             data: {
                 options: {
@@ -133,6 +139,7 @@ module.exports = function (grunt) {
             individual: ["client/individual/*.js"]
         },
 
+        // Zip up all the individual data files.
         compress: {
             individual: {
                 options: {
@@ -152,9 +159,38 @@ module.exports = function (grunt) {
             }
         },
 
+        // Start a connect server to serve client side mocha html tests for mocha_phantomjs
+        connect: {
+            server: {
+                options: {
+                    port: 8000,
+                    base: '.'
+                }
+            }
+        },
+
+        // Load the mocha client side test page with phantomjs to test that the library works
+        // in a browser.
+        mocha_phantomjs: {
+            requirejs: {
+                options: {
+                    verbose: true,
+                    urls: ["http://localhost:<%= connect.server.options.port %>/test/client/index-require.html"]
+                }
+            },
+
+            release: {
+                options: {
+                    verbose: true,
+                    urls: ["http://localhost:<%= connect.server.options.port %>/test/client/release.html"]
+                }
+            }
+        },
+
+        // Bump the version of the package.json for releases
         bump: {
             options: {
-                push: false,
+                push: true,
                 updateConfigs: ['pkg']
             }
         }
@@ -162,8 +198,10 @@ module.exports = function (grunt) {
 
     grunt.initConfig(cfg);
 
+    // Load the data building walltime- grunt tasks
     LibBuilder.registerGruntTask(grunt);
 
+    // Build lib
     grunt.registerTask("lib", [
         "test",
         "clean:lib",
@@ -174,6 +212,7 @@ module.exports = function (grunt) {
         "clean:lib"
     ]);
 
+    // Build entire data file
     grunt.registerTask("data", [
         "test",
         "clean:data",
@@ -182,6 +221,7 @@ module.exports = function (grunt) {
         "concat:data"
     ]);
 
+    // Build individual data files
     grunt.registerTask("individual", [
         "test",
         "clean:individual",
@@ -192,14 +232,33 @@ module.exports = function (grunt) {
         "compress:individual-min"
     ]);
 
-    grunt.registerTask("test", ["coffeelint:lib", "jshint2:all", "simplemocha:all"]);
+    // Lint and test code
+    grunt.registerTask("test", [
+        "coffeelint:lib", 
+        "jshint2:all", 
+        "simplemocha:all"
+    ]);
 
-    grunt.registerTask("release", [
+    // Test lib and data in phantomjs browser
+    grunt.registerTask("browsertest", [
+        "connect:server",
+        "mocha_phantomjs:release",
+        "mocha_phantomjs:requirejs"
+    ]);
+
+    // Do build and test
+    grunt.registerTask("stage", [
         "test",
-        "bump",
         "lib",
         "data",
-        "individual"
+        "individual",
+        "browsertest"
+    ]);
+
+    // Bump version and do build
+    grunt.registerTask("release", [
+        "bump",
+        "stage"
     ]);
 
     grunt.registerTask("default", function () {
