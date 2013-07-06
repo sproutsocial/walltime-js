@@ -1,7 +1,7 @@
 /*
- *  WallTime 0.0.16
+ *  WallTime 0.0.17
  *  Copyright (c) 2013 Sprout Social, Inc.
- *  Available under the MIT License (https://github.com/sproutsocial/walltime-js/blob/master/LICENSE)
+ *  Available under the MIT License (http://bit.ly/walltime-license)
  */
  
 (function() {
