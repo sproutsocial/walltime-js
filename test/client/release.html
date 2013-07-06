@@ -1,0 +1,28 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>WallTime Tests</title>
+  <link rel="stylesheet" href="mocha.css" />
+</head>
+<body>
+  <div id="mocha"></div>
+  
+  <script src="../../client/walltime-data.js"></script>
+  <script src="../../client/walltime.js"></script>
+
+  <script src="chai.js"></script>
+  <script src="mocha.js"></script>
+  <script>
+    mocha.setup('bdd');
+  </script>
+  <script src="test.walltime-api.js"></script>
+  <script src="test.walltime-chicago.js"></script>
+  <script>
+    if (window.mochaPhantomJS) {
+      mochaPhantomJS.run();
+    } else {
+      mocha.run();
+    }
+  </script>
+</body>
+</html>
