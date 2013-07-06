@@ -1,6 +1,6 @@
 {
   "name": "walltime-js",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "A javascript library for easily translating a UTC time to a \"Wall Time\" for a particular time zone and back.",
   "main": "index.js",
   "scripts": {
@@ -38,6 +38,8 @@
     "grunt-contrib-compress": "~0.5.2",
     "grunt-contrib-concat": "~0.3.0",
     "grunt-coffeelint": "0.0.7",
-    "grunt-jshint2": "~0.1.2"
+    "grunt-jshint2": "~0.1.2",
+    "grunt-contrib-connect": "~0.3.0",
+    "grunt-mocha-phantomjs": "~0.2.8"
   }
 }
