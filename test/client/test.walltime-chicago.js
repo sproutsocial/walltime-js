@@ -15,7 +15,7 @@ describe("WallTime - Chicago Data", function () {
         chicagoLandingTime.getFullYear().should.equal(1969);
         chicagoLandingTime.getMonth().should.equal(6);
         chicagoLandingTime.getDate().should.equal(20);
-        chicagoLandingTime.getHours().should.equal(15);
+        chicagoLandingTime.getHours().should.equal(14);
         chicagoLandingTime.getMinutes().should.equal(18);
     });
 });

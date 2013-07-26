@@ -55,6 +55,8 @@ buildDataFile = (opts, done) ->
     opts.zonename or= []
     opts.outputname or= path.join(process.cwd(), "client/walltime-data.js")
     opts.minyear = parseInt opts.minyear || "-271822", 10
+
+    dataFileTemplate = grunt.file.read("lib/build/dataFile.tpl")
     
     allFiles = true
     filesToProcess = {}
@@ -122,8 +124,6 @@ buildDataFile = (opts, done) ->
                 delete r.isMax
             rules[ruleName].push.apply rules[ruleName], saveVals
         
-        # grunt.log.writeln "Processed File: ", fileName
-
         # If we aren't processing all zones, clean up our rules and zones
         if !allZones
             newZones = {}
@@ -137,16 +137,7 @@ buildDataFile = (opts, done) ->
             zones = newZones
 
         # Output a client side data include file
-
-        # Wrapped in a closure, use existing WallTime object if present, export to WallTime.data
-        output = "(function() {\n
-            this.WallTime || (this.WallTime = {});\n
-            this.WallTime.data = {\n
-              rules: #{JSON.stringify(rules)},\n
-              zones: #{JSON.stringify(zones)}\n
-            };\n
-            this.WallTime.autoinit = true;\n
-      }).call(this);"
+        output = grunt.template.process(dataFileTemplate, { data: { name: path.basename(opts.outputname), rules: JSON.stringify(rules), zones: JSON.stringify(zones)} })
 
         outFile = opts.outputname
         grunt.file.write outFile, output
@@ -233,19 +224,18 @@ module.exports =
             })
 
             this.filesSrc.forEach (filepath) ->
-                contents = grunt.file.read filepath
-                eval(contents)
-
+                fileData = require path.join(process.cwd(), filepath)
+                
                 grunt.log.write("#{filepath}...")
-                unless this.WallTime?.data?
+                unless fileData?
                     grunt.log.error()
                     return grunt.warn("Unable to find WallTime.data")
 
-                unless opts.allowEmptyRules or _.keys(this.WallTime.data.rules).length > 0
+                unless opts.allowEmptyRules or _.keys(fileData.rules).length > 0
                     grunt.log.error()
                     return grunt.warn("Unable to find any rules")
 
-                unless opts.allowEmptyZones or _.keys(this.WallTime.data.zones).length > 0
+                unless opts.allowEmptyZones or _.keys(fileData.zones).length > 0
                     grunt.log.error()
                     return grunt.warn("Unable to find any zones")
 
