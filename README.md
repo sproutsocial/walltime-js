@@ -17,8 +17,25 @@ For example:
     <script src="/path/to/walltime-data.js"></script>
     <script src="/path/to/walltime.js"></script>
     <script type="text/javascript">
-        var someUTCDate = new Date(new Date().getTime()),
+        var someUTCDate = new Date(),
             chicagoWallTime = WallTime.UTCToWallTime(someUTCDate, "America/Chicago");
+    </script>
+
+## Using with RequireJS
+
+    <script type="text/javascript" src="require.js"></script>
+    <script type="text/javascript" src="path/to/walltime-data.js"></script>
+    <script type="text/javascript">
+    require.config({
+      paths: {
+        walltime: 'path/to/walltime'
+      }
+    });
+    
+    define(['walltime'], function(WallTime){
+      var someUTCDate = new Date(),
+          chicagoWallTime = WallTime.UTCToWallTime(someUTCDate, "America/Chicago");
+    });
     </script>
 
 ## Building Data
