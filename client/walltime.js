@@ -1422,7 +1422,11 @@
     module.exports = init(req_help, req_rule, req_zone);
   } else if (typeof define !== 'undefined') {
     if (!require.specified('walltime-data')) {
-      console.warn("To use WallTime with requirejs please define the walltime-data path in your config");
+      if (typeof console !== "undefined" && console !== null) {
+        if (typeof console.warn === "function") {
+          console.warn("To use WallTime with requirejs please include the walltime-data.js script before requiring walltime");
+        }
+      }
       define('walltime-data', [], function() {
         return null;
       });

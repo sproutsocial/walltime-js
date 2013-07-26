@@ -86,7 +86,7 @@ if typeof window == 'undefined'
 else if typeof define != 'undefined'
     # If walltime-data is not defined, automatically define so we can load
     unless require.specified 'walltime-data'
-        console.warn "To use WallTime with requirejs please define the walltime-data path in your config"
+        console?.warn?("To use WallTime with requirejs please include the walltime-data.js script before requiring walltime")
         define 'walltime-data', [], ->
             null
     
