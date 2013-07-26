@@ -1,5 +1,5 @@
 /*
- *  WallTime 0.0.17
+ *  WallTime 0.1.1
  *  Copyright (c) 2013 Sprout Social, Inc.
  *  Available under the MIT License (http://bit.ly/walltime-license)
  */
@@ -1421,7 +1421,24 @@
     req_help = require("./olson/helpers");
     module.exports = init(req_help, req_rule, req_zone);
   } else if (typeof define !== 'undefined') {
-    define('walltime',['olson/helpers', 'olson/rule', 'olson/zone'], init);
+    if (!require.specified('walltime-data')) {
+      if (typeof console !== "undefined" && console !== null) {
+        if (typeof console.warn === "function") {
+          console.warn("To use WallTime with requirejs please include the walltime-data.js script before requiring walltime");
+        }
+      }
+      define('walltime-data', [], function() {
+        return null;
+      });
+    }
+    define('walltime',['olson/helpers', 'olson/rule', 'olson/zone', 'walltime-data'], function(req_zone, req_rule, req_help, WallTimeData) {
+      var lib;
+      lib = init(req_zone, req_rule, req_help);
+      if (WallTimeData != null ? WallTimeData.zones : void 0) {
+        lib.init(WallTimeData.rules, WallTimeData.zones);
+      }
+      return lib;
+    });
   } else {
     this.WallTime || (this.WallTime = {});
     api = init(this.WallTime.helpers, this.WallTime.rule, this.WallTime.zone);

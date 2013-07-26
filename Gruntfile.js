@@ -190,6 +190,7 @@ module.exports = function (grunt) {
         // Bump the version of the package.json for releases
         bump: {
             options: {
+                files: ['package.json', 'bower.json'],
                 push: true,
                 updateConfigs: ['pkg']
             }

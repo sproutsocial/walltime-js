@@ -1,0 +1,19 @@
+{
+  "name": "walltime-js",
+  "version": "0.1.1",
+  "main": "client/walltime.js",
+  "ignore": [
+    "**/.*",
+    "masthead.tpl",
+    "package.json",
+    "Gruntfile.js",
+    "index.js",
+    "test",
+    "tools",
+    "lib",
+    "client/individual",
+    "client/olson",
+    "node_modules",
+    "components"
+  ]
+}
