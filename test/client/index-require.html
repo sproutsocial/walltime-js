@@ -8,8 +8,8 @@
   <body>
     <div id="mocha"></div>
     
-    <script type="text/javascript" src="../../client/walltime-data.js"></script>
     <script type="text/javascript" src="require.js"></script>
+    <script type="text/javascript" src="../../client/walltime-data.js"></script>
     <script>
 
         require.config({
@@ -24,9 +24,12 @@
             }
         });
 
-        require(["chai", "mocha", "walltime"], function(chai, mocha, WallTime) {
+        require(["chai", "mocha", "walltime"], function (chai, mocha, WallTime) {
 
-            var should = chai.should();
+            var should = chai.should(),
+                // Apollo 11 was the spaceflight that landed the first humans on the Moon, 
+                // Americans Neil Armstrong and Buzz Aldrin, on July 20, 1969, at 20:18 UTC.
+                landingTime = Date.UTC(1969, 6, 20, 20, 18, 0, 0);
 
             mocha.setup('bdd');
 
@@ -34,6 +37,18 @@
                 it("exists", function () {
                     should.exist(WallTime);
                     should.exist(WallTime.init);
+                });
+
+                it("can convert Apollo 11 landing time for America/Chicago", function () {
+                    var chicagoLandingTime = WallTime.UTCToWallTime(landingTime, "America/Chicago");
+
+                    should.exist(chicagoLandingTime);
+
+                    chicagoLandingTime.getFullYear().should.equal(1969);
+                    chicagoLandingTime.getMonth().should.equal(6);
+                    chicagoLandingTime.getDate().should.equal(20);
+                    chicagoLandingTime.getHours().should.equal(14);
+                    chicagoLandingTime.getMinutes().should.equal(18);
                 });
             });
 

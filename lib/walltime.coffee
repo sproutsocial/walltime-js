@@ -84,7 +84,19 @@ if typeof window == 'undefined'
     req_help = require "./olson/helpers"
     module.exports = init(req_help, req_rule, req_zone)
 else if typeof define != 'undefined'
-    define ['olson/helpers', 'olson/rule', 'olson/zone'], init
+    # If walltime-data is not defined, automatically define so we can load
+    unless require.specified 'walltime-data'
+        console?.warn?("To use WallTime with requirejs please include the walltime-data.js script before requiring walltime")
+        define 'walltime-data', [], ->
+            null
+    
+    define ['olson/helpers', 'olson/rule', 'olson/zone', 'walltime-data'], (req_zone, req_rule, req_help, WallTimeData) ->
+        lib = init req_zone, req_rule, req_help
+
+        if WallTimeData?.zones
+            lib.init WallTimeData.rules, WallTimeData.zones
+
+        lib
 else
     @WallTime or= {}
 
