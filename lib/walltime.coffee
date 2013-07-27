@@ -90,8 +90,8 @@ else if typeof define != 'undefined'
         define 'walltime-data', [], ->
             null
     
-    define ['olson/helpers', 'olson/rule', 'olson/zone', 'walltime-data'], (req_zone, req_rule, req_help, WallTimeData) ->
-        lib = init req_zone, req_rule, req_help
+    define ['olson/helpers', 'olson/rule', 'olson/zone', 'walltime-data'], (dep_help, dep_rule, dep_zone, WallTimeData) ->
+        lib = init dep_help, dep_rule, dep_zone
 
         if WallTimeData?.zones
             lib.init WallTimeData.rules, WallTimeData.zones
