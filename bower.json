@@ -1,6 +1,6 @@
 {
   "name": "walltime-js",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "main": "client/walltime.js",
   "ignore": [
     "**/.*",

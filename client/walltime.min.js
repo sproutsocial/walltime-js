@@ -1,5 +1,5 @@
 /*
- *  WallTime 0.1.2
+ *  WallTime 0.2.0
  *  Copyright (c) 2013 Sprout Social, Inc.
  *  Available under the MIT License (http://bit.ly/walltime-license)
  */
