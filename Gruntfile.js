@@ -191,6 +191,7 @@ module.exports = function (grunt) {
         bump: {
             options: {
                 files: ['package.json', 'bower.json'],
+                commitFiles: ["-a"],
                 push: true,
                 updateConfigs: ['pkg']
             }
@@ -258,8 +259,9 @@ module.exports = function (grunt) {
 
     // Bump version and do build
     grunt.registerTask("release", [
-        "bump",
-        "stage"
+        "bump-only:minor",
+        "stage",
+        "bump-commit"
     ]);
 
     grunt.registerTask("default", function () {
