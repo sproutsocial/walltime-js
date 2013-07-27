@@ -6,7 +6,7 @@
 
 # This data is by no means authoritative; if you think you know better,
 # go ahead and edit the file (and please send any changes to
-# tz@elsie.nci.nih.gov for general use in the future).
+# tz@iana.org for general use in the future).
 
 # From Paul Eggert (1999-03-22):
 # A reliable and entertaining source about time zones is
@@ -250,6 +250,46 @@ Zone	PST8PDT		 -8:00	US	P%sT
 #   (d) Right to Revert- Congress retains the right to revert the
 #   Daylight Saving Time back to the 2005 time schedules once the
 #   Department study is complete.
+
+# US eastern time, represented by New York
+
+# Connecticut, Delaware, District of Columbia, most of Florida,
+# Georgia, southeast Indiana (Dearborn and Ohio counties), eastern Kentucky
+# (except America/Kentucky/Louisville below), Maine, Maryland, Massachusetts,
+# New Hampshire, New Jersey, New York, North Carolina, Ohio,
+# Pennsylvania, Rhode Island, South Carolina, eastern Tennessee,
+# Vermont, Virginia, West Virginia
+
+# From Dave Cantor (2004-11-02):
+# Early this summer I had the occasion to visit the Mount Washington
+# Observatory weather station atop (of course!) Mount Washington [, NH]....
+# One of the staff members said that the station was on Eastern Standard Time
+# and didn't change their clocks for Daylight Saving ... so that their
+# reports will always have times which are 5 hours behind UTC.
+
+# From Paul Eggert (2005-08-26):
+# According to today's Huntsville Times
+# <http://www.al.com/news/huntsvilletimes/index.ssf?/base/news/1125047783228320.xml&coll=1>
+# a few towns on Alabama's "eastern border with Georgia, such as Phenix City
+# in Russell County, Lanett in Chambers County and some towns in Lee County,
+# set their watches and clocks on Eastern time."  It quotes H.H. "Bubba"
+# Roberts, city administrator in Phenix City. as saying "We are in the Central
+# time zone, but we do go by the Eastern time zone because so many people work
+# in Columbus."
+
+# Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER
+Rule	NYC	1920	only	-	Mar	lastSun	2:00	1:00	D
+Rule	NYC	1920	only	-	Oct	lastSun	2:00	0	S
+Rule	NYC	1921	1966	-	Apr	lastSun	2:00	1:00	D
+Rule	NYC	1921	1954	-	Sep	lastSun	2:00	0	S
+Rule	NYC	1955	1966	-	Oct	lastSun	2:00	0	S
+# Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+Zone America/New_York	-4:56:02 -	LMT	1883 Nov 18 12:03:58
+			-5:00	US	E%sT	1920
+			-5:00	NYC	E%sT	1942
+			-5:00	US	E%sT	1946
+			-5:00	NYC	E%sT	1967
+			-5:00	US	E%sT
 
 # US central time, represented by Chicago
 

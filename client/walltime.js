@@ -1431,9 +1431,9 @@
         return null;
       });
     }
-    define('walltime',['olson/helpers', 'olson/rule', 'olson/zone', 'walltime-data'], function(req_zone, req_rule, req_help, WallTimeData) {
+    define('walltime',['olson/helpers', 'olson/rule', 'olson/zone', 'walltime-data'], function(dep_help, dep_rule, dep_zone, WallTimeData) {
       var lib;
-      lib = init(req_zone, req_rule, req_help);
+      lib = init(dep_help, dep_rule, dep_zone);
       if (WallTimeData != null ? WallTimeData.zones : void 0) {
         lib.init(WallTimeData.rules, WallTimeData.zones);
       }

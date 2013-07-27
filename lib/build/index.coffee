@@ -100,7 +100,7 @@ buildDataFile = (opts, done) ->
                     if z.range.end.getFullYear() >= opts.minyear
                         saveZones.push z
                     else
-                        grunt.log.writeln "Filtered #{z.name}: ".yellow, "#{z.range.end.getFullYear()}"
+                        grunt.log.writeln "Filtered zone #{z.name}: ".yellow, "#{z.range.end.getFullYear()}"
 
                     # Remove extra fields from zones
                     delete z.range
@@ -108,21 +108,21 @@ buildDataFile = (opts, done) ->
                 
                 zones[zoneName].push.apply zones[zoneName], saveZones
 
-        # Add the rules to our existing rules
-        for own ruleName, ruleVals of rulesZones.rules
-            rules[ruleName] or= []
-            saveVals = []
-            for r in ruleVals
-                if r.to >= opts.minyear
-                    saveVals.push(r)
-                else
-                    grunt.log.writeln "Filtered #{ruleName}: ".yellow, "#{r.to}"
-                # Remove extra fields from rules
-                delete r.from
-                delete r.to
-                delete r.save
-                delete r.isMax
-            rules[ruleName].push.apply rules[ruleName], saveVals
+            # Add the rules to our existing rules
+            for own ruleName, ruleVals of rulesZones.rules
+                rules[ruleName] or= []
+                saveVals = []
+                for r in ruleVals
+                    if r.to >= opts.minyear
+                        saveVals.push(r)
+                    else
+                        grunt.log.writeln "Filtered rule #{ruleName}: ".yellow, "#{r.to}"
+                    # Remove extra fields from rules
+                    delete r.from
+                    delete r.to
+                    delete r.save
+                    delete r.isMax
+                rules[ruleName].push.apply rules[ruleName], saveVals
         
         # If we aren't processing all zones, clean up our rules and zones
         if !allZones

@@ -27,8 +27,6 @@ describe "walltime-js", ->
             should.exist result?.rules, "should have rules in result"
 
             rules = JSON.parse(JSON.stringify(result.rules))
-            # zones = JSON.parse(JSON.stringify(result.zones))
-
             zones[zoneName] = zoneVal.zones for own zoneName, zoneVal of result.zones
 
             do next
@@ -167,6 +165,17 @@ describe "walltime-js", ->
     describe "UTCToWallTime (America/Chicago)", ->
         before (next) ->
             readTimezoneFile "./test/rsrc/full/northamerica", next
+
+        it "can convert Jul 26 2013, 6:50 AM", ->
+            WallTime.init rules, zones
+
+            chicagoTime = WallTime.UTCToWallTime(1374839400000, "America/Chicago")
+
+            chicagoTime.getFullYear().should.equal(2013)
+            chicagoTime.getMonth().should.equal(6)
+            chicagoTime.getDate().should.equal(26)
+            chicagoTime.getHours().should.equal(6)
+            chicagoTime.getMinutes().should.equal(50)
 
         it "can translate a UTC Time to Chicago Wall Time for times before the first zone line", ->
             # Before any zones
