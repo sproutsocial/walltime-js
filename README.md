@@ -10,15 +10,27 @@ Dates in JavaScript do not properly account for daylight savings time for region
 For example:
 
 - Your API sends UTC times in JSON but you need to display them for Chicago time zone to a user viewing your page in Los Angeles.
-- What was the UTC Time on May 24, 1844 at 9:00 AM in Baltimore, Maryland?
+- What was the local time in Chicago when the first humans landed on the Moon?
 
 ## Usage
+
+Here is an example unit test showing how to use the WallTime API to get the local time in Chicago for the Moon landing.
 
     <script src="/path/to/walltime-data.js"></script>
     <script src="/path/to/walltime.js"></script>
     <script type="text/javascript">
-        var someUTCDate = new Date(),
-            chicagoWallTime = WallTime.UTCToWallTime(someUTCDate, "America/Chicago");
+        it("can convert first moon landing time", function () {
+            // Apollo 11 was the spaceflight that landed the first humans on the Moon,
+            // Americans Neil Armstrong and Buzz Aldrin, on July 20, 1969, at 20:18 UTC.
+            var landingTime = Date.UTC(1969, 6, 20, 20, 18, 0, 0),
+                chicagoLandingTime = WallTime.UTCToWallTime(landingTime, "America/Chicago");
+
+            chicagoLandingTime.getFullYear().should.equal(1969);
+            chicagoLandingTime.getMonth().should.equal(6);
+            chicagoLandingTime.getDate().should.equal(20);
+            chicagoLandingTime.getHours().should.equal(15);
+            chicagoLandingTime.getMinutes().should.equal(18);
+        });
     </script>
 
 ## Using with RequireJS
