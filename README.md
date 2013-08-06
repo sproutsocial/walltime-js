@@ -16,39 +16,43 @@ For example:
 
 Here is an example unit test showing how to use the WallTime API to get the local time in Chicago for the Moon landing.
 
-    <script src="/path/to/walltime-data.js"></script>
-    <script src="/path/to/walltime.js"></script>
-    <script type="text/javascript">
-        it("can convert first moon landing time", function () {
-            // Apollo 11 was the spaceflight that landed the first humans on the Moon,
-            // Americans Neil Armstrong and Buzz Aldrin, on July 20, 1969, at 20:18 UTC.
-            var landingTime = Date.UTC(1969, 6, 20, 20, 18, 0, 0),
-                chicagoLandingTime = WallTime.UTCToWallTime(landingTime, "America/Chicago");
-
-            chicagoLandingTime.getFullYear().should.equal(1969);
-            chicagoLandingTime.getMonth().should.equal(6);
-            chicagoLandingTime.getDate().should.equal(20);
-            chicagoLandingTime.getHours().should.equal(15);
-            chicagoLandingTime.getMinutes().should.equal(18);
-        });
-    </script>
+```html
+<script src="/path/to/walltime-data.js"></script>
+<script src="/path/to/walltime.js"></script>
+<script type="text/javascript">
+    it("can convert first moon landing time", function () {
+        // Apollo 11 was the spaceflight that landed the first humans on the Moon,
+        // Americans Neil Armstrong and Buzz Aldrin, on July 20, 1969, at 20:18 UTC.
+        var landingTime = Date.UTC(1969, 6, 20, 20, 18, 0, 0),
+            chicagoLandingTime = WallTime.UTCToWallTime(landingTime, "America/Chicago");
+        
+        chicagoLandingTime.getFullYear().should.equal(1969);
+        chicagoLandingTime.getMonth().should.equal(6);
+        chicagoLandingTime.getDate().should.equal(20);
+        chicagoLandingTime.getHours().should.equal(15);
+        chicagoLandingTime.getMinutes().should.equal(18);
+    });
+</script>
+```
 
 ## Using with RequireJS
 
-    <script type="text/javascript" src="require.js"></script>
-    <script type="text/javascript" src="path/to/walltime-data.js"></script>
-    <script type="text/javascript">
+```html
+<script type="text/javascript" src="require.js"></script>
+<script type="text/javascript" src="path/to/walltime-data.js"></script>
+<script type="text/javascript">
     require.config({
       paths: {
         walltime: 'path/to/walltime'
       }
     });
-    
+
     define(['walltime'], function(WallTime){
       var someUTCDate = new Date(),
           chicagoWallTime = WallTime.UTCToWallTime(someUTCDate, "America/Chicago");
     });
-    </script>
+</script>
+```
 
 ## Building Data
 
