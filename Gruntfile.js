@@ -42,7 +42,7 @@ module.exports = function (grunt) {
 
             lib: {
                 expand: true,
-                src: ['client/walltime*.js', '!client/walltime-data*.js']
+                src: ['client/walltime*.js', 'client/commonjs/**/*.js', '!client/walltime-data*.js']
             },
 
             data: {
@@ -76,6 +76,18 @@ module.exports = function (grunt) {
                     out: "client/walltime.min.js",
                     optimize: "uglify"
                 }
+            }
+        },
+
+        // Copy relevant files over for a commonjs build (i.e. Titanium)
+        copy: {
+            commonjs: {
+                files: [{
+                    expand: true,
+                    cwd: 'lib/',
+                    src: ['walltime.js', 'olson/helpers.js', 'olson/rule.js', 'olson/zone.js', 'olson/timezonetime.js'],
+                    dest: "client/commonjs"
+                }]
             }
         },
 
@@ -211,6 +223,7 @@ module.exports = function (grunt) {
         "coffee:lib",
         "requirejs:lib",
         "requirejs:libmin",
+        "copy:commonjs",
         "concat:lib",
         "clean:lib"
     ]);
