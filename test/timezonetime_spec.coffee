@@ -19,7 +19,7 @@ describe "timezonetime", ->
     Feb11_2013_2333 = 1360647207000
 
     Mar14_2013_800 = 1363266000000
-    
+
 
     readTimezoneFile = (file = "./test/rsrc/full/northamerica", next) ->
         reader = new OlsonReader
@@ -31,7 +31,7 @@ describe "timezonetime", ->
             for own ruleName, ruleVal of result.rules
                 rules[ruleName] ||= []
                 rules[ruleName] = rules[ruleName].concat ruleVal
-            
+
             zones[zoneName] = zoneVal.zones for own zoneName, zoneVal of result.zones
 
             do next
@@ -74,10 +74,24 @@ describe "timezonetime", ->
 
         date.getTimezoneOffset().should.equal expect, "dst"
 
+    it "gets DST correctly", ->
+        date = WallTime.UTCToWallTime Feb11_2013_2333
+        date.isDST().should.equal false
+
+        date = WallTime.UTCToWallTime Mar14_2013_800
+        date.isDST().should.equal true
+
+    it "gets abbreviation correctly", ->
+        date = WallTime.UTCToWallTime Feb11_2013_2333
+        date.getAbbreviation().should.equal 'CST'
+
+        date = WallTime.UTCToWallTime Mar14_2013_800
+        date.getAbbreviation().should.equal 'CDT'
+
     it "sets year correctly", ->
         date = WallTime.UTCToWallTime Feb12_2013_1433
         date.getFullYear().should.equal 2013
-        
+
         date.setFullYear 2012
 
         date.getFullYear().should.equal 2012
@@ -87,7 +101,7 @@ describe "timezonetime", ->
     it "sets month correctly", ->
         date = WallTime.UTCToWallTime Feb12_2013_1433
         date.getMonth().should.equal 1
-        
+
         date.setMonth 0
 
         date.getMonth().should.equal 0
@@ -96,7 +110,7 @@ describe "timezonetime", ->
     it "sets day correctly", ->
         date = WallTime.UTCToWallTime Feb12_2013_1433
         date.getDate().should.equal 12
-        
+
         date.setDate 1
 
         date.getFullYear().should.equal 2013
@@ -139,7 +153,7 @@ describe "timezonetime", ->
         date.getFullYear().should.equal 2013
 
         date.setTime Feb12_2013_1135
-        
+
         date.getHours().should.equal 11
         date.getMinutes().should.equal 35
         date.getMonth().should.equal 1

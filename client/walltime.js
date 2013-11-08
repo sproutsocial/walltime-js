@@ -450,6 +450,14 @@
         return base - dst;
       };
 
+      TimeZoneTime.prototype.isDST = function() {
+        return this.save.hours !== 0 || this.save.mins !== 0;
+      };
+
+      TimeZoneTime.prototype.getAbbreviation = function() {
+        return this.zone.format.replace('%s', this.isDST() ? 'D' : 'S');
+      };
+
       TimeZoneTime.prototype.toISOString = function() {
         return this.utc.toISOString();
       };
