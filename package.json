@@ -23,8 +23,8 @@
     "coffee-script": "~1.6.1",
     "mocha": "~1.x.x",
     "line-reader": "~0.2.1",
-    "strscan": "~1.0.1",
-    "requirejs": "~2.0.6"
+    "requirejs": "~2.0.6",
+    "strscan": "~1.0.1"
   },
   "devDependencies": {
     "grunt-bump": "0.0.11",
