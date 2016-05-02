@@ -62,7 +62,7 @@ By default, `walltime-data.js` contains `northamerica`, `europe` and `australasi
 
 To get the latest Olson files
 
-    git submodule init && git submodule update
+    git clone git@github.com:eggert/tz.git client/olson
 
 To build all the data for all the time zone files
 
