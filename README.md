@@ -1,3 +1,8 @@
+# Deprecation Notice
+Walltime is no longer actively maintained or supported. Please use another library (such as [moment-timezone](http://momentjs.com/timezone/)) instead.
+
+-------------------------
+
 walltime-js [![Build Status](https://secure.travis-ci.org/sproutsocial/walltime-js.png)](http://travis-ci.org/sproutsocial/walltime-js)
 ===========
 
