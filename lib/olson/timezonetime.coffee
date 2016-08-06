@@ -1,7 +1,7 @@
 
 
 init = (helpers) ->
-    
+
     class TimeZoneTime
         constructor: (@utc, @zone, @save) ->
             @offset = @zone.offset
@@ -16,7 +16,7 @@ init = (helpers) ->
         getMinutes: -> @wallTime.getUTCMinutes()
         getSeconds: -> @wallTime.getUTCSeconds()
         getMilliseconds: -> @wallTime.getUTCMilliseconds()
-        
+
         # UTC Date overrides
         getUTCFullYear: -> @utc.getUTCFullYear()
         getUTCMonth: -> @utc.getUTCMonth()
@@ -39,8 +39,12 @@ init = (helpers) ->
 
             base - dst
 
+        isDST: -> @save.hours isnt 0 or @save.mins isnt 0
+
+        getAbbreviation: -> @zone.format.replace('%s', if @isDST() then 'D' else 'S')
+
         toISOString: -> @utc.toISOString()
-            
+
         toUTCString: -> @wallTime.toUTCString()
 
         toDateString: ->
@@ -59,7 +63,7 @@ init = (helpers) ->
 
             meridiem = if origHour > 11 then ' PM' else ' AM'
             meridiem = '' if use24HourTime
-            
+
             "#{hour}:#{min}#{meridiem}"
 
         setTime: (ms) ->
