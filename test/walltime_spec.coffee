@@ -2,8 +2,7 @@ should = require "should"
 helpers = require "../lib/olson/helpers"
 OlsonReader = require "../lib/olson/reader"
 OlsonCommon = require "../lib/olson/common"
-WallTime = require "../lib/walltime"
-TimeZoneTime = require "../lib/olson/timezonetime"
+WallTime = require "../build/walltime.js"
 OlsonZone = OlsonCommon.Zone
 OlsonZoneSet = OlsonCommon.ZoneSet
 
@@ -11,11 +10,11 @@ describe "walltime-js", ->
     rules = {}
     zones = {}
 
-    noSave = 
+    noSave =
         hours: 0
         mins: 0
 
-    dstSave = 
+    dstSave =
         hours: 1
         mins: 0
 
@@ -107,13 +106,13 @@ describe "walltime-js", ->
                 -6:00   US  C%sT
         ###
 
-    firstOffset = 
+    firstOffset =
         negative: true
         hours: 5
         mins: 50
         secs: 36
 
-    sixOffset = 
+    sixOffset =
         negative: true
         hours: 6
         mins: 0
@@ -181,7 +180,7 @@ describe "walltime-js", ->
             # Before any zones
             point = helpers.Time.MakeDateFromParts 1880, 0, 1
 
-            expect = new TimeZoneTime point, { offset: firstOffset }, noSave
+            expect = new WallTime.TimeZoneTime point, { offset: firstOffset }, noSave
 
             commonWallTimeTest point, "America/Chicago", noSave, expect
 
@@ -190,7 +189,7 @@ describe "walltime-js", ->
             point = helpers.Time.MakeDateFromParts 1883, 10, 18, 12, 9, 23
             point = helpers.Time.ApplyOffset point, firstOffset
 
-            expect = new TimeZoneTime point, { offset: firstOffset }, noSave
+            expect = new WallTime.TimeZoneTime point, { offset: firstOffset }, noSave
 
             commonWallTimeTest point, "America/Chicago", noSave, expect
 
@@ -199,8 +198,8 @@ describe "walltime-js", ->
             point = helpers.Time.MakeDateFromParts 1883, 10, 18, 12, 9, 24
             # We use the first offset here because we want it to match the end of the first rule
             point = helpers.Time.ApplyOffset point, firstOffset
-            
-            expect = new TimeZoneTime point, { offset: sixOffset }, noSave
+
+            expect = new WallTime.TimeZoneTime point, { offset: sixOffset }, noSave
 
             commonWallTimeTest point, "America/Chicago", noSave, expect
 
@@ -208,8 +207,8 @@ describe "walltime-js", ->
             # Right after the end of the first zone line
             point = helpers.Time.MakeDateFromParts 1918, 2, 31, 2, 0, 1
             point = helpers.Time.ApplyOffset point, sixOffset
-            
-            expect = new TimeZoneTime point, { offset: sixOffset }, dstSave
+
+            expect = new WallTime.TimeZoneTime point, { offset: sixOffset }, dstSave
 
             commonWallTimeTest point, "America/Chicago", dstSave, expect
 
@@ -219,20 +218,20 @@ describe "walltime-js", ->
             point = helpers.Time.ApplyOffset point, sixOffset
             # Apply the save because we would be in daylight savings from the previous move
             point = helpers.Time.ApplySave point, dstSave
-            
-            expect = new TimeZoneTime point, { offset: sixOffset }, noSave
+
+            expect = new WallTime.TimeZoneTime point, { offset: sixOffset }, noSave
 
             commonWallTimeTest point, "America/Chicago", noSave, expect
 
         it "can translate this years rule before DST", ->
             # Right before the time zone switch
             point = helpers.Time.StandardTimeToUTC sixOffset, 2012, 2, 11, 1, 59
-            #console.log point.toUTCString()            
-            
+            #console.log point.toUTCString()
+
             #console.log point.toUTCString()
             point.getUTCHours().should.equal 7
-            
-            expect = new TimeZoneTime point, { offset: sixOffset }, noSave
+
+            expect = new WallTime.TimeZoneTime point, { offset: sixOffset }, noSave
 
             commonWallTimeTest point, "America/Chicago", noSave, expect
 
@@ -240,8 +239,8 @@ describe "walltime-js", ->
             # Right after the time zone switch
             point = helpers.Time.MakeDateFromParts 2012, 2, 11, 2, 0
             point = helpers.Time.ApplyOffset point, sixOffset
-            
-            expect = new TimeZoneTime point, { offset: sixOffset }, dstSave
+
+            expect = new WallTime.TimeZoneTime point, { offset: sixOffset }, dstSave
 
             commonWallTimeTest point, "America/Chicago", dstSave, expect
 
@@ -251,16 +250,16 @@ describe "walltime-js", ->
             point = helpers.Time.ApplyOffset point, sixOffset
             # Apply a DST because we would have had one applied.
             point = helpers.Time.ApplySave point, dstSave
-            
-            expect = new TimeZoneTime point, { offset: sixOffset }, dstSave
+
+            expect = new WallTime.TimeZoneTime point, { offset: sixOffset }, dstSave
 
             commonWallTimeTest point, "America/Chicago", dstSave, expect
 
         it "can translate this years rule before the switch back to DST", ->
             # End of DST
             point = helpers.Time.WallTimeToUTC sixOffset, dstSave, 2012, 10, 4, 1, 59
-            
-            expect = new TimeZoneTime point, { offset: sixOffset }, dstSave
+
+            expect = new WallTime.TimeZoneTime point, { offset: sixOffset }, dstSave
 
             commonWallTimeTest point, "America/Chicago", dstSave, expect
 
@@ -270,8 +269,8 @@ describe "walltime-js", ->
             point = helpers.Time.ApplyOffset point, sixOffset
             # Apply a DST because we would have had one applied.
             point = helpers.Time.ApplySave point, dstSave
-            
-            expect = new TimeZoneTime point, { offset: sixOffset }, noSave
+
+            expect = new WallTime.TimeZoneTime point, { offset: sixOffset }, noSave
 
             commonWallTimeTest point, "America/Chicago", noSave, expect
 
@@ -288,7 +287,7 @@ describe "walltime-js", ->
             #console.log "\n"+expect.toUTCString()
             result = WallTime.WallTimeToUTC zoneName, point
             #console.log result.toUTCString()
-            
+
             result.should.equal expect
 
         it "can translate wall time before the first zone line to UTC", ->
@@ -301,7 +300,7 @@ describe "walltime-js", ->
             expect = helpers.Time.StandardTimeToUTC firstOffset, 1883, 10, 18, 12, 9, 23
             point = helpers.Time.UTCToStandardTime expect, firstOffset
 
-            commonUTCTimeTest point, expect    
+            commonUTCTimeTest point, expect
 
         it "can translate wall time after the end of the first zone line", ->
             # We are preparing the "point" by using the firstOffset and just adding 2 seconds after the end of the first zone line.
@@ -311,7 +310,7 @@ describe "walltime-js", ->
             # What we actually are expecting should have the sixOffset value
             expect = helpers.Time.StandardTimeToUTC sixOffset, 1883, 10, 18, 12, 9, 25
 
-            commonUTCTimeTest point, expect          
+            commonUTCTimeTest point, expect
 
         it "can translate wall time after the first zone line", ->
             expect = helpers.Time.MakeDateFromParts 1900, 0, 1
@@ -329,10 +328,10 @@ describe "walltime-js", ->
             # Priming without dst save
             expect = helpers.Time.StandardTimeToUTC sixOffset, 2012, 2, 11, 2
             point = helpers.Time.UTCToStandardTime expect, sixOffset
-            
+
             # What we are expecting should have a dstSave applied.
             expect = helpers.Time.WallTimeToUTC sixOffset, dstSave, 2012, 2, 11, 2
-            
+
             commonUTCTimeTest point, expect
 
         it "can translate this years wall time during DST", ->
@@ -375,7 +374,7 @@ describe "walltime-js", ->
         ###
         Daylight savings in Australia/Adelaide is generally opposite of the united states.
 
-        GMT Offset is +9:30.  
+        GMT Offset is +9:30.
 
         Enter Daylight savings (Spring Forward) on October 7, 2012 3:00 AM -> 2:00 AM
         Leave Daylights savings (Fall Back) on April 1, 2012 2:00 AM -> 3:00 AM
@@ -428,7 +427,7 @@ describe "walltime-js", ->
         ###
         Daylight savings in Australia/Adelaide is generally opposite of the united states.
 
-        GMT Offset is +9:30.  
+        GMT Offset is +9:30.
 
         Enter Daylight savings (Spring Forward) on October 7, 2012 3:00 AM -> 2:00 AM
         Leave Daylights savings (Fall Back) on April 1, 2012 2:00 AM -> 3:00 AM
@@ -522,7 +521,7 @@ describe "walltime-js", ->
             testTimestamp Jan4_8AM_2013, 2013, 0, 4, 8, 0
 
     describe "UTCToWallTime (America/Regina)", ->
-        sixOffset = 
+        sixOffset =
             negative: true
             hours: 6
             mins: 0
@@ -530,7 +529,7 @@ describe "walltime-js", ->
 
         Mar28_8AM_2012 = helpers.Time.MakeDateFromParts 2012, 2, 28, 8
         Mar28_8AM_2012 = helpers.Time.ApplyOffset Mar28_8AM_2012, sixOffset
-        
+
         testTimestamp = (ts, yr, month, day, hr, min) ->
             result = WallTime.UTCToWallTime ts
 
@@ -554,7 +553,7 @@ describe "walltime-js", ->
             local = WallTime.UTCToWallTime new Date(), "America/Regina"
 
             local.zone.name.should.equal("America/Regina")
-            
+
         # Before the DST Transition
         it "can translate March 28 2012, 8:00 AM correctly", ->
 

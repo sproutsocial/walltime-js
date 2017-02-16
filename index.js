@@ -1,2 +1,1 @@
-require("coffee-script");
-module.exports = require("./lib/walltime");
+module.exports = require("./build/lib/walltime.js");

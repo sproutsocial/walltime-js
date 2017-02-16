@@ -7,14 +7,15 @@
   </head>
   <body>
     <div id="mocha"></div>
-    
+
     <script type="text/javascript" src="require.js"></script>
-    <script type="text/javascript" src="../../client/walltime-data.js"></script>
+    <!-- <script type="text/javascript" src="../../client/walltime-data.js"></script> -->
+    <script type="text/javascript" src="../../build/walltime.js"></script>
     <script>
 
         require.config({
             paths: {
-                walltime: "../../client/walltime"
+                walltime: "../../build/walltime"
             },
 
             shim: {
@@ -27,7 +28,7 @@
         require(["chai", "mocha", "walltime"], function (chai, mocha, WallTime) {
 
             var should = chai.should(),
-                // Apollo 11 was the spaceflight that landed the first humans on the Moon, 
+                // Apollo 11 was the spaceflight that landed the first humans on the Moon,
                 // Americans Neil Armstrong and Buzz Aldrin, on July 20, 1969, at 20:18 UTC.
                 landingTime = Date.UTC(1969, 6, 20, 20, 18, 0, 0);
 
@@ -62,7 +63,7 @@
                 });
             });
 
-            
+
             if (window.mochaPhantomJS) mochaPhantomJS.run()
             else mocha.run();
         });

@@ -24,7 +24,7 @@ describe "Olson Reader", ->
 
     it "has a reader", ->
         should.exist OlsonReader
-    
+
     it "can parse Rule lines with comments at the end", ->
         reader = new OlsonReader
         checkRule = (r) ->
@@ -38,7 +38,7 @@ describe "Olson Reader", ->
             r.save.hours.should.equal 1
             r.save.mins.should.equal 0
             r.letter.should.equal "D"
-        
+
         rule = reader.processRuleLine ruleLine
         checkRule rule
 
@@ -48,7 +48,7 @@ describe "Olson Reader", ->
     it "can parse Rule lines with 'max' To field", ->
         reader = new OlsonReader
         rule = reader.processRuleLine maxRuleLine
-        offset = 
+        offset =
             negative: false
             hours: 0
             mins: 0
@@ -95,7 +95,7 @@ describe "Olson Reader", ->
 
         reader.directory "./test/rsrc", (result) ->
             should.exist result, "Should have returned a result"
-            
+
             should.exist result["America-Chicago"], "Should have Chicago file"
             should.exist result["America-Chicago"].zones["America/Chicago"], "Should have Chicago zone in Chicago file"
 
@@ -111,12 +111,12 @@ describe "Olson Reader", ->
 
         reader.directory "./test/rsrc", (result) ->
             should.exist result, "Should have returned a result"
-            
+
             should.exist result["America-Chicago"], "Should have Chicago file"
             should.exist result["America-Chicago"].zones["America/Chicago"], "Should have Chicago zone in Chicago file"
 
             should.not.exist result["America-New_York"], "Should not have New York file"
-            
+
             do done
 
     it "can read the northamerica Olson file", (done) ->
@@ -135,8 +135,8 @@ describe "Olson Reader", ->
             chiZone.zones.length.should.be.above 1
 
             do done
-    
-    it "returns a list of all the read in TimeZones", -> 
+
+    it "returns a list of all the read in TimeZones", ->
         # We can combine them ourselves through the result that comes back from reader.directory, see time zone mapping test
         true
 
@@ -145,7 +145,7 @@ describe "Olson Reader", ->
 
         reader.directory "./test/rsrc", (result) ->
             should.exist result, "Should have returned a result"
-            
+
             map = {}
             for own fileName, parsed of result
                 for own zoneName, zoneSet of parsed.zones
