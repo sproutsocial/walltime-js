@@ -38,7 +38,7 @@ Months =
         dateIndex = parseInt dateIndex, 10
         if dateIndex is NaN
             throw new Error "Unable to parse the dateIndex of the 'on' rule for #{str}"
-        
+
         dayIndex = helpers.Days.DayIndex dayName
 
         # Set up the compare functions based on the conditional parsed from the onStr
@@ -68,7 +68,7 @@ Months =
         dayIndex = helpers.Days.DayIndex dayName
 
         # To get the last day of the month we set the date to the first day of next month, and move back one day.
-        
+
         # Set the date to the first day of the next month
         if month < 11
             lastDay = helpers.Time.MakeDateFromParts year, (month + 1)
@@ -82,7 +82,7 @@ Months =
         # Iterate backward until our dayIndex matches the last days index
         while lastDay.getUTCDay() != dayIndex
             lastDay = helpers.Days.AddToDate lastDay, -1
-        
+
         return lastDay.getUTCDate()
 
 Milliseconds =
@@ -102,7 +102,7 @@ Time =
     ParseGMTOffset: (str) ->
         reg = new RegExp("(-)?([0-9]*):([0-9]*):?([0-9]*)?")
         matches = reg.exec str
-        
+
         result = if matches then (parseInt match, 10 for match in matches[2..]) else [0,0,0]
 
         # Inject in whether we are negative
@@ -245,10 +245,4 @@ helpers =
             secs: 0
         name: "UTC"
 
-if typeof window == 'undefined'
-    module.exports = helpers
-else if typeof define != 'undefined'
-    define helpers
-else
-    @.WallTime or= {}
-    @.WallTime.helpers = helpers
+module.exports = helpers

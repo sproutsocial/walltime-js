@@ -2,7 +2,7 @@ should = require "should"
 helpers = require "../lib/olson/helpers"
 
 describe "Olson Helpers", ->
-    
+
     describe "Time Helpers", ->
         # These are tests to confirm my assumptions about javascript dates
         commonDateCompare = (y, m, d, h, mi, s, ms) ->
@@ -54,7 +54,7 @@ describe "Olson Helpers", ->
         it "can apply an offset", ->
             # Start with 1/10/1920 12:00 UTC
             origDate = helpers.Time.MakeDateFromParts(1920, 0, 10, 12)
-            offset = 
+            offset =
                 negative: true
                 hours: 5
                 mins: 50
@@ -90,7 +90,7 @@ describe "Olson Helpers", ->
             result.should.equal expectDate
 
         it "can generate a standard time", ->
-            offset = 
+            offset =
                 negative: true
                 hours: 6
                 mins: 0
@@ -106,7 +106,7 @@ describe "Olson Helpers", ->
             result.getUTCHours().should.equal 6
 
         it "can generate a utc time from a standard time and offset", ->
-            offset = 
+            offset =
                 negative: true
                 hours: 6
                 mins: 0
@@ -122,18 +122,18 @@ describe "Olson Helpers", ->
             result.getUTCHours().should.equal 18
 
         it "can generate qualified time", ->
-            getSave = -> 
+            getSave = ->
                 hours: 1
                 mins: 0
 
-            offset = 
+            offset =
                 negative: true
                 hours: 6
                 mins: 0
                 secs: 0
 
             utc = helpers.Time.MakeDateFromParts 1920, 0, 10, 12
-            
+
             # UTC Time
             expect = utc
             result = helpers.Time.UTCToQualifiedTime utc, "u", offset, getSave
@@ -156,11 +156,11 @@ describe "Olson Helpers", ->
             result.getUTCHours().should.equal 7
 
         it "can generate utc from qualified time", ->
-            getSave = -> 
+            getSave = ->
                 hours: 1
                 mins: 0
 
-            offset = 
+            offset =
                 negative: true
                 hours: 6
                 mins: 0

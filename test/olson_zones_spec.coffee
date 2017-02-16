@@ -45,7 +45,7 @@ describe "Olson Zones", ->
         zone = makeZone()
 
         expect = helpers.Time.MakeDateFromParts 1883, 10, 18, 12, 9, 24
-        expect = helpers.Time.ApplyOffset expect, 
+        expect = helpers.Time.ApplyOffset expect,
             negative: true
             hours: 5
             mins: 50
@@ -59,7 +59,7 @@ describe "Olson Zones", ->
         zone = makeRangeZone()
 
         expect = helpers.Time.MakeDateFromParts 1998, 3, 5, 3, 0
-        expect = helpers.Time.ApplyOffset expect, 
+        expect = helpers.Time.ApplyOffset expect,
             negative: true
             hours: 7
             mins: 0
@@ -73,7 +73,7 @@ describe "Olson Zones", ->
         zone = makeLastRangeZone()
 
         expect = helpers.Time.MakeDateFromParts 1992, 8, 26, 23, 0
-        expect = helpers.Time.ApplyOffset expect, 
+        expect = helpers.Time.ApplyOffset expect,
             negative: false
             hours: 3
             mins: 0
@@ -87,7 +87,7 @@ describe "Olson Zones", ->
         zone = makeReginaZone()
 
         expect = helpers.Time.MakeDateFromParts 1960, 3, 24, 2, 0
-        expect = helpers.Time.ApplyOffset expect, 
+        expect = helpers.Time.ApplyOffset expect,
             negative: true
             hours: 7
             mins: 0
@@ -105,7 +105,7 @@ describe "Olson Zones", ->
 
         # Far enough for me
         beginYear = zone.range.begin.getUTCFullYear()
-        
+
         # Moses time and what-not is far enough for me.
         beginYear.should.be.below -2000
 
@@ -162,7 +162,7 @@ describe "Olson Zones", ->
     it "can convert a time to offset time when a named rule is specified", ->
         zoneSet = defaultSet()
 
-        save = 
+        save =
             hours: 1
             mins: 0
 
@@ -186,7 +186,7 @@ describe "Olson Zones", ->
 
         it "can find an applicable zone by UTC date before the beginning of the zones records minimum date", ->
             zoneSet = defaultSet()
-            
+
             firstZone = zoneSet.zones[0]
 
             earlyDate = firstZone.range.begin
@@ -238,5 +238,5 @@ describe "Olson Zones", ->
 
 
 
-        
+
 

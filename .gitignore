@@ -12,6 +12,7 @@ pids
 logs
 results
 
+build
 client/individual/*.js
 
 node_modules

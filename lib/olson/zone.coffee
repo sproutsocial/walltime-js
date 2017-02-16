@@ -24,7 +24,7 @@ init = (helpers, rule, TimeZoneTime) ->
             # Example: 1883 Nov 18 12:14:48
             # Chihuahua: 1998 Apr Sun>=1 3:00
             # Asia/Baku: 1992 Sep lastSat 23:00
-            
+
             [year, monthName, day, time] = til.split " "
             [neg, h, mi, s] = if time then helpers.Time.ParseGMTOffset time else [false, 0, 0, 0]
 
@@ -148,7 +148,7 @@ init = (helpers, rule, TimeZoneTime) ->
 
     class ZoneSet
         constructor: (@zones = [], @getRulesNamed) ->
-            
+
             # Set a name from the passed in zones or default to ""
             if @zones.length > 0
                 @name = @zones[0].name
@@ -217,13 +217,7 @@ init = (helpers, rule, TimeZoneTime) ->
         Zone: Zone
         ZoneSet: ZoneSet
 
-if typeof window == 'undefined'
-    req_helpers = require "./helpers"
-    req_rule = require "./rule"
-    req_TimeZoneTime = require "./timezonetime"
-    module.exports = init(req_helpers, req_rule, req_TimeZoneTime)
-else if typeof define != 'undefined'
-    define ["olson/helpers", "olson/rule", "olson/timezonetime"], init
-else
-    @.WallTime or= {}
-    @.WallTime.zone = init(@.WallTime.helpers, @.WallTime.rule, @.WallTime.TimeZoneTime)
+req_helpers = require "./helpers"
+req_rule = require "./rule"
+req_TimeZoneTime = require "./timezonetime"
+module.exports = init(req_helpers, req_rule, req_TimeZoneTime)
