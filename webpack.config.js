@@ -2,7 +2,7 @@ var path = require("path");
 var webpack = require("webpack");
 
 module.exports = function(env) {
-  var outputFile = '[name].js',
+  var outputFile = '[name].browser.js',
       libraryName = 'WallTime'
   console.log("Env: ", env);
   // if(env=="production") outputFile = '[name].min.js'
@@ -31,7 +31,7 @@ module.exports = function(env) {
               BROWSER: JSON.stringify(true)
           },
           'require.specified':'require.resolve'
-      }),
+      })
     ],
     module:{
       rules: [

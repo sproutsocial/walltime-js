@@ -2,12 +2,12 @@
   "name": "@metamx/walltime-js",
   "version": "0.2.1",
   "description": "A javascript library for easily translating a UTC time to a \"Wall Time\" for a particular time zone and back.",
-  "main": "build/walltime.js",
+  "main": "build/lib/walltime.js",
   "scripts": {
     "test": "grunt test",
     "watch": "webpack -d -w --progress --env \"development\"",
     "build": "webpack -d --progress --env \"development\"",
-    "build:prod":"webpack -p --progress --env \"production\"",
+    "build:prod":"grunt compile",
     "postinstall": "npm run build:prod"
   },
   "repository": {
@@ -31,6 +31,7 @@
     "requirejs": "~2.0.6",
     "strscan": "~1.0.1"
   },
+  "typings":"lib/walltime-js.d.ts",
   "devDependencies": {
     "babel-core": "^6.22.1",
     "babel-loader": "^6.2.10",

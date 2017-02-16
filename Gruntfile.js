@@ -1,14 +1,31 @@
 var LibBuilder = require("./lib/build");
-var WebpackConfig=require('./webpack.config');
+var WebpackConfig=require('./webpack.config')('production');
+var webpack=require('webpack');
 module.exports = function (grunt) {
-    grunt.loadNpmTasks('grunt-webpack');
     // load all grunt tasks
     require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
     // The config info
     var cfg = {
         webpack: {
-            main: WebpackConfig
+            options: WebpackConfig,
+            dev:{},
+            prod: {
+                plugins: WebpackConfig.plugins.concat(
+                    new webpack.optimize.UglifyJsPlugin({
+                      compress: {
+                         warnings: false,
+                         keep_fnames: true
+                      },
+                      mangle: {
+                         keep_fnames: true
+                      }
+                    }),
+                    new webpack.DefinePlugin({
+                        'process.env': {NODE_ENV: JSON.stringify("production")}
+                    })
+                )}
+
         },
         pkg: grunt.file.readJSON('package.json'),
 
@@ -123,7 +140,7 @@ module.exports = function (grunt) {
 
     // Build lib
     grunt.registerTask("compile",[
-        "webpack",
+        "webpack:prod",
         "coffee:lib",
         "copy:data"
     ]);

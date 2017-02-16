@@ -1,7 +1,7 @@
 {
   "name": "@metamx/walltime-js",
   "version": "0.2.1",
-  "main": "build/walltime.js",
+  "main": "build/walltime.browser.js",
   "ignore": [
     "**/.*",
     "masthead.tpl",
